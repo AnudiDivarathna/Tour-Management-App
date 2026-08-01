@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { api } from '../api';
 import { formatDateRange, formatMoney, formatStatus, vehicleLabel } from '../utils/format';
+import { downloadToursExcel } from '../utils/exportToursExcel';
 
 export default function AdminTours() {
   const [tours, setTours] = useState([]);
@@ -31,6 +32,18 @@ export default function AdminTours() {
     }
   }
 
+  async function handleExportExcel() {
+    if (!tours.length) {
+      alert('No tours to export.');
+      return;
+    }
+    try {
+      await downloadToursExcel(tours);
+    } catch (err) {
+      alert(err.message || 'Failed to export Excel file.');
+    }
+  }
+
   return (
     <Layout role="admin">
       <div className="page-header row">
@@ -38,9 +51,19 @@ export default function AdminTours() {
           <h1>Tours</h1>
           <p className="muted">All tour records. Unassigned tours have no vehicle yet.</p>
         </div>
-        <Link to="/admin/tours/new" className="btn primary">
-          Add tour
-        </Link>
+        <div className="header-actions">
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={handleExportExcel}
+            disabled={loading || !tours.length}
+          >
+            Export Excel
+          </button>
+          <Link to="/admin/tours/new" className="btn primary">
+            Add tour
+          </Link>
+        </div>
       </div>
 
       {loading && <p className="muted">Loading tours…</p>}
