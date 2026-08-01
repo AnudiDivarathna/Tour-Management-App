@@ -1,0 +1,25 @@
+{
+  "name": "tour-management-backend",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
+    "seed": "node src/seed.js",
+    "update-vehicle-types": "node src/scripts/updateVehicleTypes.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Tour management API",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.9.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
