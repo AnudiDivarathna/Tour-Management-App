@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import vehicleRoutes from './routes/vehicles.js';
 import tourRoutes from './routes/tours.js';
+import companyRoutes from './routes/companies.js';
 import Tour from './models/Tour.js';
 import { calculateTourFinance } from './utils/tourFinance.js';
 
@@ -48,6 +49,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/vehicles', vehicleRoutes);
 app.use('/api/tours', tourRoutes);
+app.use('/api/companies', companyRoutes);
 
 app.patch('/api/driver/tours/:id', async (req, res) => {
   try {

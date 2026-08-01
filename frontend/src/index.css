@@ -132,6 +132,12 @@ select {
   box-shadow: 0 10px 22px rgba(31, 95, 134, 0.08);
 }
 
+.side-link.companies {
+  background: linear-gradient(145deg, #f7efe6 0%, #fbf6f0 100%);
+  border-color: rgba(166, 106, 46, 0.18);
+  box-shadow: 0 10px 22px rgba(166, 106, 46, 0.08);
+}
+
 .side-link:hover {
   transform: translateY(-2px);
 }
@@ -150,12 +156,23 @@ select {
   box-shadow: 0 14px 28px rgba(31, 95, 134, 0.14);
 }
 
+.side-link.companies:hover,
+.side-link.companies.active {
+  border-color: rgba(166, 106, 46, 0.4);
+  background: linear-gradient(145deg, #f0e0ce 0%, #f8efe4 100%);
+  box-shadow: 0 14px 28px rgba(166, 106, 46, 0.14);
+}
+
 .side-link.vehicles.active strong {
   color: #0b5f42;
 }
 
 .side-link.tours.active strong {
   color: #174e70;
+}
+
+.side-link.companies.active strong {
+  color: #8a5320;
 }
 
 .side-link-icon {
@@ -174,6 +191,11 @@ select {
 
 .side-link.tours .side-link-icon {
   background: linear-gradient(145deg, #3c8fc4, #1f5f86);
+  color: #fff;
+}
+
+.side-link.companies .side-link-icon {
+  background: linear-gradient(145deg, #c9853d, #a66a2e);
   color: #fff;
 }
 
@@ -203,10 +225,27 @@ select {
   color: #1f5f86;
 }
 
+.side-link.companies .side-link-text strong {
+  color: #a66a2e;
+}
+
 .side-link-text small {
   color: var(--muted);
   font-size: 0.8rem;
   line-height: 1.35;
+}
+
+.inline-form.compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+}
+
+.inline-form.compact input {
+  min-width: 12rem;
+  flex: 1;
 }
 
 .topbar {

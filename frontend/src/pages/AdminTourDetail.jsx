@@ -11,6 +11,7 @@ export default function AdminTourDetail({ mode }) {
   const isNew = mode === 'new';
   const [tour, setTour] = useState(null);
   const [vehicles, setVehicles] = useState([]);
+  const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(!isNew);
   const [error, setError] = useState('');
   const fromCalendarId = location.state?.fromCalendar;
@@ -18,11 +19,13 @@ export default function AdminTourDetail({ mode }) {
   useEffect(() => {
     (async () => {
       try {
-        const [vehicleList, tourData] = await Promise.all([
+        const [vehicleList, companyList, tourData] = await Promise.all([
           api.getVehicles(),
+          api.getCompanies(),
           isNew ? Promise.resolve(null) : api.getTour(id),
         ]);
         setVehicles(vehicleList);
+        setCompanies(companyList);
         setTour(tourData);
       } catch (err) {
         setError(err.message);
@@ -74,6 +77,7 @@ export default function AdminTourDetail({ mode }) {
           <AdminTourForm
             initial={tour}
             vehicles={vehicles}
+            companies={companies}
             onSubmit={handleSubmit}
             onCancel={() => navigate(backTo)}
             submitLabel={isNew ? 'Create tour' : 'Save changes'}

@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import Vehicle from './models/Vehicle.js';
 import Tour from './models/Tour.js';
+import Company from './models/Company.js';
 import { calculateTourFinance } from './utils/tourFinance.js';
 
 dotenv.config();
@@ -163,7 +164,14 @@ async function seed() {
 
     await Tour.deleteMany({});
     await Vehicle.deleteMany({});
-    console.log('Cleared previous tours and vehicles');
+    await Company.deleteMany({});
+    console.log('Cleared previous tours, vehicles, and companies');
+
+    const companyNames = [...new Set(tourRows.map((row) => row.company).filter(Boolean))];
+    const insertedCompanies = await Company.insertMany(
+      companyNames.map((name) => ({ name }))
+    );
+    console.log(`Seeded ${insertedCompanies.length} companies`);
 
     const vehicles = vehiclePlates.map((numberPlate) => ({
       numberPlate: formatPlate(numberPlate),

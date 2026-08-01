@@ -37,6 +37,24 @@ function TourIcon() {
   );
 }
 
+function CompanyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 20V8.5A1.5 1.5 0 0 1 5.5 7H10v13H4Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M10 20V4.5A1.5 1.5 0 0 1 11.5 3h7A1.5 1.5 0 0 1 20 4.5V20"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path d="M13 7h3M13 10h3M13 13h3M6.5 11H8M6.5 14H8" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 export default function Layout({ role, children }) {
   const isAdmin = role === 'admin';
 
@@ -75,6 +93,15 @@ export default function Layout({ role, children }) {
               <span className="side-link-text">
                 <strong>Vehicle management</strong>
                 <small>Add, edit, or remove vehicles</small>
+              </span>
+            </NavLink>
+            <NavLink to="/admin/companies" className="side-link companies">
+              <span className="side-link-icon">
+                <CompanyIcon />
+              </span>
+              <span className="side-link-text">
+                <strong>Company management</strong>
+                <small>Add company names for tours</small>
               </span>
             </NavLink>
             <NavLink to="/admin/tours" className="side-link tours">

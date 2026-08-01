@@ -25,6 +25,13 @@ export const api = {
     request(`/vehicles/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteVehicle: (id) => request(`/vehicles/${id}`, { method: 'DELETE' }),
 
+  getCompanies: () => request('/companies'),
+  createCompany: (body) =>
+    request('/companies', { method: 'POST', body: JSON.stringify(body) }),
+  updateCompany: (id, body) =>
+    request(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteCompany: (id) => request(`/companies/${id}`, { method: 'DELETE' }),
+
   getTours: () => request('/tours'),
   getUnassignedTours: () => request('/tours/unassigned'),
   getTour: (id) => request(`/tours/${id}`),

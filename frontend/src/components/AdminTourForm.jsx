@@ -44,6 +44,7 @@ const INCOME_FIELDS = [
 export default function AdminTourForm({
   initial,
   vehicles,
+  companies = [],
   onSubmit,
   onCancel,
   submitLabel = 'Save tour',
@@ -196,11 +197,21 @@ export default function AdminTourForm({
               </label>
               <label className="field span-2">
                 <span className="field-name">Company</span>
-                <input
+                <select
                   value={form.company}
                   onChange={(e) => update('company', e.target.value)}
-                  placeholder="Client / company name"
-                />
+                >
+                  <option value="">— Select company —</option>
+                  {form.company &&
+                    !companies.some((c) => c.name === form.company) && (
+                      <option value={form.company}>{form.company}</option>
+                    )}
+                  {companies.map((c) => (
+                    <option key={c._id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="field">
                 <span className="field-name">Tour No.</span>

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminVehicles from './pages/AdminVehicles';
+import AdminCompanies from './pages/AdminCompanies';
 import AdminTours from './pages/AdminTours';
 import AdminTourDetail from './pages/AdminTourDetail';
 import VehicleCalendarPage from './pages/VehicleCalendarPage';
@@ -18,6 +19,7 @@ export default function App() {
         path="/admin/vehicles/:id/calendar"
         element={<VehicleCalendarPage role="admin" />}
       />
+      <Route path="/admin/companies" element={<AdminCompanies />} />
       <Route path="/admin/tours" element={<AdminTours />} />
       <Route path="/admin/tours/new" element={<AdminTourDetail mode="new" />} />
       <Route path="/admin/tours/:id" element={<AdminTourDetail mode="edit" />} />
