@@ -23,6 +23,25 @@ const DRIVER_ALLOWED_FIELDS = [
 app.use(cors());
 app.use(express.json());
 
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is not set');
+  }
+  await mongoose.connect(process.env.MONGODB_URI);
+  console.log('Connected to MongoDB');
+}
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err.message);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
@@ -55,20 +74,17 @@ app.patch('/api/driver/tours/:id', async (req, res) => {
   }
 });
 
-async function start() {
-  try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI is not set');
-    }
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err.message);
-    process.exit(1);
-  }
-}
+export default app;
 
-start();
+if (!process.env.VERCEL) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error('Failed to start server:', err.message);
+      process.exit(1);
+    });
+}
