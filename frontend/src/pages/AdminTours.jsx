@@ -33,6 +33,15 @@ export default function AdminTours() {
     }
   }
 
+  async function handleMarkPaymentReceived(id) {
+    try {
+      const updated = await api.markTourPaymentReceived(id);
+      setTours((prev) => prev.map((t) => (t._id === id ? updated : t)));
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   async function handleExportExcel() {
     if (!tours.length) {
       alert('No tours to export.');
@@ -117,6 +126,21 @@ export default function AdminTours() {
                     <td>{formatMoney(tour.totalCost ?? tour.totalAmount)}</td>
                     <td>{formatMoney(tour.netProfit)}</td>
                     <td className="right nowrap">
+                      {(statusValue === 'payment_pending' ||
+                        statusValue === 'payment_received') && (
+                        <label className="status-check compact">
+                          <input
+                            type="checkbox"
+                            checked={statusValue === 'payment_received'}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                handleMarkPaymentReceived(tour._id);
+                              }
+                            }}
+                          />
+                          <span>Paid</span>
+                        </label>
+                      )}
                       <Link to={`/admin/tours/${tour._id}`} className="btn ghost">
                         Details
                       </Link>

@@ -16,11 +16,13 @@ const emptyForm = {
   vehicle: '',
   status: 'scheduled',
   dieselCost: 0,
-  driverHelperPayment: 0,
+  driverPayment: 0,
+  helperPayment: 0,
   highwayBill: 0,
   parkingBill: 0,
   accommodationCharges: 0,
   foodBill: 0,
+  waterBottles: 0,
   fuelAdvance: 0,
   balance: 0,
   commission: 0,
@@ -28,16 +30,18 @@ const emptyForm = {
 
 const COST_FIELDS = [
   { key: 'dieselCost', label: 'Fuel' },
-  { key: 'driverHelperPayment', label: 'Driver & helper' },
+  { key: 'driverPayment', label: 'Driver payment' },
+  { key: 'helperPayment', label: 'Helper payment' },
   { key: 'highwayBill', label: 'Highway' },
   { key: 'parkingBill', label: 'Parking' },
   { key: 'accommodationCharges', label: 'Accommodation' },
   { key: 'foodBill', label: 'Food' },
+  { key: 'waterBottles', label: 'Water bottles' },
 ];
 
 const INCOME_FIELDS = [
-  { key: 'fuelAdvance', label: 'Fuel advance' },
-  { key: 'balance', label: 'Balance' },
+  { key: 'fuelAdvance', label: 'Tour advance' },
+  { key: 'balance', label: 'Tour payment' },
   { key: 'commission', label: 'Commission' },
 ];
 
@@ -46,12 +50,14 @@ export default function AdminTourForm({
   vehicles,
   companies = [],
   onSubmit,
+  onMarkPaymentReceived,
   onCancel,
   submitLabel = 'Save tour',
 }) {
   const [form, setForm] = useState(emptyForm);
   const [saveState, setSaveState] = useState('idle');
   const [error, setError] = useState('');
+  const [markingPaid, setMarkingPaid] = useState(false);
   const resetTimer = useRef(null);
 
   useEffect(() => {
@@ -75,11 +81,19 @@ export default function AdminTourForm({
       vehicle: initial.vehicle?._id || initial.vehicle || '',
       status: resolveTourStatus({ ...initial, startDate, endDate }),
       dieselCost: initial.dieselCost ?? 0,
-      driverHelperPayment: initial.driverHelperPayment ?? 0,
+      driverPayment: (() => {
+        const driver = Number(initial.driverPayment) || 0;
+        const helper = Number(initial.helperPayment) || 0;
+        const legacy = Number(initial.driverHelperPayment) || 0;
+        if (!driver && !helper && legacy) return legacy;
+        return driver;
+      })(),
+      helperPayment: Number(initial.helperPayment) || 0,
       highwayBill: initial.highwayBill ?? 0,
       parkingBill: initial.parkingBill ?? 0,
       accommodationCharges: initial.accommodationCharges ?? 0,
       foodBill: initial.foodBill ?? 0,
+      waterBottles: initial.waterBottles ?? 0,
       fuelAdvance: initial.fuelAdvance ?? 0,
       balance: initial.balance ?? 0,
       commission: initial.commission ?? 0,
@@ -142,11 +156,13 @@ export default function AdminTourForm({
         status,
         vehicle: form.vehicle || null,
         dieselCost: Number(form.dieselCost) || 0,
-        driverHelperPayment: Number(form.driverHelperPayment) || 0,
+        driverPayment: Number(form.driverPayment) || 0,
+        helperPayment: Number(form.helperPayment) || 0,
         highwayBill: Number(form.highwayBill) || 0,
         parkingBill: Number(form.parkingBill) || 0,
         accommodationCharges: Number(form.accommodationCharges) || 0,
         foodBill: Number(form.foodBill) || 0,
+        waterBottles: Number(form.waterBottles) || 0,
         fuelAdvance: Number(form.fuelAdvance) || 0,
         balance: Number(form.balance) || 0,
         commission: Number(form.commission) || 0,
@@ -252,38 +268,44 @@ export default function AdminTourForm({
                   ))}
                 </select>
               </label>
-              <div className="field span-2 status-actions">
-                <span className="field-name">Status</span>
-                <p className="muted status-help">
-                  Set automatically from dates: Ongoing from the start date, Payment pending
-                  from the end date. Admin can mark Payment received.
-                </p>
-                <div className="status-action-row">
-                  <span className={`status-chip ${displayStatus}`}>
-                    {formatStatus(displayStatus)}
-                  </span>
-                  {displayStatus !== 'payment_received' && autoStatus === 'payment_pending' && (
-                    <button
-                      type="button"
-                      className="btn primary"
-                      onClick={() => update('status', 'payment_received')}
-                    >
-                      Mark payment received
-                    </button>
-                  )}
-                  {displayStatus === 'payment_received' && (
-                    <button
-                      type="button"
-                      className="btn ghost"
-                      onClick={() =>
-                        update('status', computeAutoStatus(form.startDate, form.endDate))
-                      }
-                    >
-                      Undo payment received
-                    </button>
-                  )}
+              {(autoStatus === 'payment_pending' ||
+                displayStatus === 'payment_received') && (
+                <div className="field span-2 status-actions">
+                  <span className="field-name">Status</span>
+                  <label className="status-check">
+                    <input
+                      type="checkbox"
+                      checked={displayStatus === 'payment_received'}
+                      disabled={markingPaid}
+                      onChange={async (e) => {
+                        const checked = e.target.checked;
+                        setError('');
+                        if (checked) {
+                          if (onMarkPaymentReceived) {
+                            setMarkingPaid(true);
+                            try {
+                              await onMarkPaymentReceived();
+                              update('status', 'payment_received');
+                            } catch (err) {
+                              setError(err.message);
+                            } finally {
+                              setMarkingPaid(false);
+                            }
+                          } else {
+                            update('status', 'payment_received');
+                          }
+                        } else {
+                          update(
+                            'status',
+                            computeAutoStatus(form.startDate, form.endDate)
+                          );
+                        }
+                      }}
+                    />
+                    <span>Payment received</span>
+                  </label>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </section>

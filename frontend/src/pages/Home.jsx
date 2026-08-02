@@ -1,12 +1,24 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import BrandMark from '../components/BrandMark';
 import { ArrowRightIcon, BusIcon, CalendarIcon } from '../components/icons';
+import { useAuth } from '../auth';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { isAdmin, signOut } = useAuth();
+
+  if (!isAdmin) return <Navigate to="/driver" replace />;
+
+  function handleSignOut() {
+    signOut();
+    navigate('/login', { replace: true });
+  }
+
   return (
-    <div className="home-gate">
+    <div className="home-gate gate-home">
       <div className="home-card">
-        <h1>Tour Management</h1>
-        <p className="muted">Choose a view to continue. No login required.</p>
+        <BrandMark size="lg" />
+        <p className="muted gate-lead">Choose a view to continue.</p>
 
         <div className="home-options">
           <Link to="/admin" className="home-option admin">
@@ -31,6 +43,10 @@ export default function Home() {
             <ArrowRightIcon className="cta-arrow" />
           </Link>
         </div>
+
+        <button type="button" className="btn ghost home-signout" onClick={handleSignOut}>
+          Sign out
+        </button>
       </div>
     </div>
   );

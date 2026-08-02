@@ -23,13 +23,19 @@ export function buildTourExportRows(tours) {
     Vehicle: vehicleLabel(tour.vehicle),
     Status: formatStatus(resolveTourStatus(tour)),
     Fuel: money(tour.dieselCost),
-    'Driver & helper': money(tour.driverHelperPayment),
+    'Driver payment': money(
+      tour.driverPayment ??
+        (tour.helperPayment ? 0 : tour.driverHelperPayment) ??
+        0
+    ),
+    'Helper payment': money(tour.helperPayment),
     Highway: money(tour.highwayBill),
     Parking: money(tour.parkingBill),
     Accommodation: money(tour.accommodationCharges),
     Food: money(tour.foodBill),
-    'Fuel advance': money(tour.fuelAdvance),
-    Balance: money(tour.balance),
+    'Water bottles': money(tour.waterBottles),
+    'Tour advance': money(tour.fuelAdvance),
+    'Tour payment': money(tour.balance),
     Commission: money(tour.commission),
     'Total cost': money(tour.totalCost ?? tour.totalAmount),
     'Net profit': money(tour.netProfit),

@@ -1,8 +1,11 @@
 import express from 'express';
 import Company from '../models/Company.js';
 import Tour from '../models/Tour.js';
+import { requireAdmin } from '../utils/auth.js';
 
 const router = express.Router();
+
+router.use(requireAdmin);
 
 async function syncCompaniesFromTours() {
   const names = await Tour.distinct('company', {

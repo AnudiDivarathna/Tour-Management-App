@@ -1,4 +1,15 @@
 import mongoose from 'mongoose';
+import { EXPENSE_CATEGORY_KEYS } from '../utils/tourExpenses.js';
+
+const expenseSchema = new mongoose.Schema(
+  {
+    category: { type: String, enum: EXPENSE_CATEGORY_KEYS, required: true },
+    amount: { type: Number, default: 0 },
+    note: { type: String, default: '', trim: true },
+    date: { type: Date, default: null },
+  },
+  { _id: true }
+);
 
 const tourSchema = new mongoose.Schema(
   {
@@ -17,7 +28,8 @@ const tourSchema = new mongoose.Schema(
       default: 'scheduled',
     },
     dieselCost: { type: Number, default: 0 },
-    driverHelperPayment: { type: Number, default: 0 },
+    driverPayment: { type: Number, default: 0 },
+    helperPayment: { type: Number, default: 0 },
     fuelAdvance: { type: Number, default: 0 },
     balance: { type: Number, default: 0 },
     totalCost: { type: Number, default: 0 },
@@ -27,6 +39,8 @@ const tourSchema = new mongoose.Schema(
     parkingBill: { type: Number, default: 0 },
     accommodationCharges: { type: Number, default: 0 },
     foodBill: { type: Number, default: 0 },
+    waterBottles: { type: Number, default: 0 },
+    expenses: { type: [expenseSchema], default: [] },
   },
   { timestamps: true }
 );

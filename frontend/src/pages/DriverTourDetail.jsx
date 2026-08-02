@@ -38,7 +38,9 @@ export default function DriverTourDetail() {
           ← Back
         </Link>
         <h1>Tour details</h1>
-        <p className="muted">You can update fuel and bill amounts only.</p>
+        <p className="muted">
+          Add each expense as you spend — the totals update as you type.
+        </p>
       </div>
 
       {loading && <p className="muted">Loading…</p>}

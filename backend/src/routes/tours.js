@@ -6,13 +6,16 @@ import {
   resolveTourStatus,
   withResolvedStatus,
 } from '../utils/tourStatus.js';
+import { canAccessVehicle, requireAdmin } from '../utils/auth.js';
 
 const router = express.Router();
 
 function withFinance(body, existing = {}) {
   const merged = { ...existing, ...body };
   const finance = calculateTourFinance(merged);
-  return { ...body, ...finance };
+  const payload = { ...body, ...finance };
+  delete payload.driverHelperPayment;
+  return payload;
 }
 
 function applyStatusRules(body, existing = {}) {
@@ -45,7 +48,7 @@ async function syncTourStatuses(tours) {
   return tours.map((tour) => withResolvedStatus(tour));
 }
 
-router.get('/', async (_req, res) => {
+router.get('/', requireAdmin, async (_req, res) => {
   try {
     const tours = await Tour.find().populate('vehicle').sort({ startDate: -1 });
     res.json(await syncTourStatuses(tours));
@@ -54,7 +57,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/unassigned', async (_req, res) => {
+router.get('/unassigned', requireAdmin, async (_req, res) => {
   try {
     const tours = await Tour.find({
       $or: [{ vehicle: null }, { vehicle: { $exists: false } }],
@@ -69,13 +72,16 @@ router.get('/:id', async (req, res) => {
   try {
     const tour = await Tour.findById(req.params.id).populate('vehicle');
     if (!tour) return res.status(404).json({ message: 'Tour not found' });
+    if (!canAccessVehicle(req.user, tour.vehicle?._id)) {
+      return res.status(403).json({ message: 'You do not have access to this tour' });
+    }
     res.json(await syncTourStatus(tour));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
     const payload = applyStatusRules(withFinance(req.body));
     delete payload.paymentStatus;
@@ -87,7 +93,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
     const existing = await Tour.findById(req.params.id).lean();
     if (!existing) return res.status(404).json({ message: 'Tour not found' });
@@ -95,7 +101,10 @@ router.put('/:id', async (req, res) => {
     delete payload.paymentStatus;
     const tour = await Tour.findByIdAndUpdate(
       req.params.id,
-      { $set: payload, $unset: { paymentStatus: '' } },
+      {
+        $set: payload,
+        $unset: { paymentStatus: '', driverHelperPayment: '' },
+      },
       { new: true, runValidators: true }
     ).populate('vehicle');
     res.json(withResolvedStatus(tour));
@@ -104,7 +113,23 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.patch('/:id/payment-received', requireAdmin, async (req, res) => {
+  try {
+    const existing = await Tour.findById(req.params.id);
+    if (!existing) return res.status(404).json({ message: 'Tour not found' });
+
+    existing.status = 'payment_received';
+    existing.set('paymentStatus', undefined);
+    await existing.save();
+
+    const tour = await Tour.findById(existing._id).populate('vehicle');
+    res.json(withResolvedStatus(tour));
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const tour = await Tour.findByIdAndDelete(req.params.id);
     if (!tour) return res.status(404).json({ message: 'Tour not found' });

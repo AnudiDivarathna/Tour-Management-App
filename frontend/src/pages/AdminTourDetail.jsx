@@ -45,6 +45,13 @@ export default function AdminTourDetail({ mode }) {
     }
   }
 
+  async function handleMarkPaymentReceived() {
+    if (isNew || !id) return null;
+    const updated = await api.markTourPaymentReceived(id);
+    setTour(updated);
+    return updated;
+  }
+
   const vehicleId = tour?.vehicle?._id || tour?.vehicle || fromCalendarId;
   const backTo = fromCalendarId
     ? `/admin/vehicles/${fromCalendarId}/calendar`
@@ -79,6 +86,7 @@ export default function AdminTourDetail({ mode }) {
             vehicles={vehicles}
             companies={companies}
             onSubmit={handleSubmit}
+            onMarkPaymentReceived={isNew ? undefined : handleMarkPaymentReceived}
             onCancel={() => navigate(backTo)}
             submitLabel={isNew ? 'Create tour' : 'Save changes'}
           />

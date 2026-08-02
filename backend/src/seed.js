@@ -69,7 +69,7 @@ const tourRows = [
     vehicle: 'NF 1997',
     status: 'ongoing',
     dieselCost: '62,500.00',
-    driverHelperPayment: '21,640.00',
+    driverPayment: '21,640.00',
     commission: '',
   },
   {
@@ -79,7 +79,7 @@ const tourRows = [
     vehicle: 'NH 1997',
     status: 'ongoing',
     dieselCost: '38,577.00',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -89,7 +89,7 @@ const tourRows = [
     vehicle: 'NF 4507',
     status: 'ongoing',
     dieselCost: '42,793.00',
-    driverHelperPayment: '25,000.00',
+    driverPayment: '25,000.00',
     commission: '',
   },
   {
@@ -99,7 +99,7 @@ const tourRows = [
     vehicle: 'NG 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -109,7 +109,7 @@ const tourRows = [
     vehicle: 'NH 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -119,7 +119,7 @@ const tourRows = [
     vehicle: 'NH 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -129,7 +129,7 @@ const tourRows = [
     vehicle: 'NH 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -139,7 +139,7 @@ const tourRows = [
     vehicle: 'NF 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
   {
@@ -149,7 +149,7 @@ const tourRows = [
     vehicle: 'NG 1997',
     status: 'ongoing',
     dieselCost: '',
-    driverHelperPayment: '',
+    driverPayment: '',
     commission: '',
   },
 ];
@@ -188,7 +188,8 @@ async function seed() {
       const [startStr, endStr] = row.range.split('-');
       const finance = calculateTourFinance({
         dieselCost: parseAmount(row.dieselCost),
-        driverHelperPayment: parseAmount(row.driverHelperPayment),
+        driverPayment: parseAmount(row.driverPayment),
+        helperPayment: 0,
         commission: parseAmount(row.commission),
         fuelAdvance: 0,
         balance: 0,
@@ -196,6 +197,7 @@ async function seed() {
         parkingBill: 0,
         accommodationCharges: 0,
         foodBill: 0,
+        waterBottles: 0,
       });
       const vehicleId = row.vehicle
         ? vehicleByPlate.get(normalisePlate(row.vehicle)) || null

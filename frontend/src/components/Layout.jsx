@@ -1,4 +1,6 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import BrandMark from './BrandMark';
+import { useAuth } from '../auth';
 
 function VehicleIcon() {
   return (
@@ -55,15 +57,42 @@ function CompanyIcon() {
   );
 }
 
+function UsersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="9" cy="8" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M3.5 19.5c0-3 2.5-4.8 5.5-4.8s5.5 1.8 5.5 4.8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 5.5a2.8 2.8 0 0 1 0 5.4M17.5 14.6c2 .6 3.2 2.1 3.2 4.1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function Layout({ role, children }) {
   const isAdmin = role === 'admin';
+  const navigate = useNavigate();
+  const { user, isAdmin: canSwitchViews, signOut } = useAuth();
+
+  function handleSignOut() {
+    signOut();
+    navigate('/login', { replace: true });
+  }
 
   return (
     <div className={`app-shell ${isAdmin ? 'with-sidebar admin-theme' : 'driver-theme'}`}>
       <header className="topbar">
         <div className="topbar-inner">
           <Link to={isAdmin ? '/admin' : '/driver'} className="brand">
-            Tour Management
+            <BrandMark size="sm" />
           </Link>
           <nav className="nav">
             {isAdmin ? (
@@ -76,9 +105,19 @@ export default function Layout({ role, children }) {
               </NavLink>
             )}
           </nav>
-          <span className={`role-badge ${isAdmin ? 'admin' : 'driver'}`}>
-            {isAdmin ? 'Admin' : 'Driver'}
-          </span>
+          <div className="topbar-user">
+            {canSwitchViews && (
+              <Link to="/" className="nav-tab switch-view">
+                Switch view
+              </Link>
+            )}
+            <span className={`role-badge ${isAdmin ? 'admin' : 'driver'}`}>
+              {user?.name || (isAdmin ? 'Admin' : 'Driver')}
+            </span>
+            <button type="button" className="btn ghost signout-btn" onClick={handleSignOut}>
+              Sign out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -110,7 +149,16 @@ export default function Layout({ role, children }) {
               </span>
               <span className="side-link-text">
                 <strong>Tour management</strong>
-                <small>Create, edit, and assign tours</small>
+                <small>Create, edit, and assign trips</small>
+              </span>
+            </NavLink>
+            <NavLink to="/admin/users" className="side-link users">
+              <span className="side-link-icon">
+                <UsersIcon />
+              </span>
+              <span className="side-link-text">
+                <strong>User management</strong>
+                <small>Add admins and drivers</small>
               </span>
             </NavLink>
           </aside>

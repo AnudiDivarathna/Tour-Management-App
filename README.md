@@ -1,6 +1,6 @@
 # Tour Management App (MERN)
 
-Vehicle and tour scheduling app with separate **Admin** and **Driver** URLs (no login).
+Vehicle and tour scheduling app with **Admin** and **Driver** roles behind a login.
 
 ## Stack
 

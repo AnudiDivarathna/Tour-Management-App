@@ -5,8 +5,12 @@ import mongoose from 'mongoose';
 import vehicleRoutes from './routes/vehicles.js';
 import tourRoutes from './routes/tours.js';
 import companyRoutes from './routes/companies.js';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
+import { canAccessVehicle, requireAuth } from './utils/auth.js';
 import Tour from './models/Tour.js';
 import { calculateTourFinance } from './utils/tourFinance.js';
+import { sanitiseExpenses, totalsFromExpenses } from './utils/tourExpenses.js';
 
 dotenv.config();
 
@@ -47,11 +51,13 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.use('/api/vehicles', vehicleRoutes);
-app.use('/api/tours', tourRoutes);
-app.use('/api/companies', companyRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/vehicles', requireAuth, vehicleRoutes);
+app.use('/api/tours', requireAuth, tourRoutes);
+app.use('/api/companies', requireAuth, companyRoutes);
 
-app.patch('/api/driver/tours/:id', async (req, res) => {
+app.patch('/api/driver/tours/:id', requireAuth, async (req, res) => {
   try {
     const updates = {};
     for (const field of DRIVER_ALLOWED_FIELDS) {
@@ -59,11 +65,18 @@ app.patch('/api/driver/tours/:id', async (req, res) => {
         updates[field] = req.body[field];
       }
     }
+    if (req.body.expenses !== undefined) {
+      const expenses = sanitiseExpenses(req.body.expenses);
+      Object.assign(updates, { expenses }, totalsFromExpenses(expenses));
+    }
     if (Object.keys(updates).length === 0) {
       return res.status(400).json({ message: 'No allowed fields to update' });
     }
     const existing = await Tour.findById(req.params.id).lean();
     if (!existing) return res.status(404).json({ message: 'Tour not found' });
+    if (!canAccessVehicle(req.user, existing.vehicle)) {
+      return res.status(403).json({ message: 'You cannot update this tour' });
+    }
     const finance = calculateTourFinance({ ...existing, ...updates });
     const tour = await Tour.findByIdAndUpdate(
       req.params.id,
