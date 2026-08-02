@@ -1,8 +1,28 @@
 import express from 'express';
 import Vehicle from '../models/Vehicle.js';
 import Tour from '../models/Tour.js';
+import {
+  resolveTourStatus,
+  withResolvedStatus,
+} from '../utils/tourStatus.js';
 
 const router = express.Router();
+
+async function syncTourStatuses(tours) {
+  await Promise.all(
+    tours.map(async (tour) => {
+      const next = resolveTourStatus(tour);
+      if (tour.status !== next) {
+        tour.status = next;
+        await Tour.updateOne(
+          { _id: tour._id },
+          { status: next, $unset: { paymentStatus: '' } }
+        );
+      }
+    })
+  );
+  return tours.map((tour) => withResolvedStatus(tour));
+}
 
 router.get('/', async (_req, res) => {
   try {
@@ -28,7 +48,7 @@ router.get('/:id/tours', async (req, res) => {
     const vehicle = await Vehicle.findById(req.params.id);
     if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });
     const tours = await Tour.find({ vehicle: req.params.id }).sort({ startDate: 1 });
-    res.json(tours);
+    res.json(await syncTourStatuses(tours));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

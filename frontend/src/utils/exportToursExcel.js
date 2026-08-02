@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { formatStatus, vehicleLabel } from './format';
+import { resolveTourStatus } from './tourStatus';
 
 function toExcelDate(value) {
   if (!value) return '';
@@ -13,15 +14,6 @@ function money(value) {
   return Number.isNaN(num) ? 0 : num;
 }
 
-function resolveStatus(tour) {
-  if (tour.paymentStatus === 'done') return 'payment_received';
-  if (['tentative', 'confirmed', 'payment_received'].includes(tour.status)) {
-    return tour.status;
-  }
-  if (tour.status === 'pending') return 'tentative';
-  return tour.status || 'tentative';
-}
-
 export function buildTourExportRows(tours) {
   return tours.map((tour) => ({
     'Start date': toExcelDate(tour.startDate),
@@ -29,7 +21,7 @@ export function buildTourExportRows(tours) {
     Company: tour.company || '',
     'Tour No.': tour.tourNo || '',
     Vehicle: vehicleLabel(tour.vehicle),
-    Status: formatStatus(resolveStatus(tour)),
+    Status: formatStatus(resolveTourStatus(tour)),
     Fuel: money(tour.dieselCost),
     'Driver & helper': money(tour.driverHelperPayment),
     Highway: money(tour.highwayBill),

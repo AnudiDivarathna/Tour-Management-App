@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { api } from '../api';
 import { formatDateRange, formatMoney, formatStatus, vehicleLabel } from '../utils/format';
 import { downloadToursExcel } from '../utils/exportToursExcel';
+import { resolveTourStatus } from '../utils/tourStatus';
 
 export default function AdminTours() {
   const [tours, setTours] = useState([]);
@@ -88,14 +89,7 @@ export default function AdminTours() {
             <tbody>
               {tours.map((tour) => {
                 const vehicleId = tour.vehicle?._id || tour.vehicle;
-                const statusValue =
-                  tour.paymentStatus === 'done'
-                    ? 'payment_received'
-                    : ['tentative', 'confirmed', 'payment_received'].includes(tour.status)
-                      ? tour.status
-                      : tour.status === 'pending'
-                        ? 'tentative'
-                        : tour.status || 'tentative';
+                const statusValue = resolveTourStatus(tour);
                 return (
                   <tr key={tour._id}>
                     <td>

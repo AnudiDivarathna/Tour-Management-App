@@ -50,11 +50,14 @@ export function vehicleLabel(vehicle) {
 }
 
 const STATUS_LABELS = {
-  tentative: 'Tentative',
-  confirmed: 'Confirmed',
+  scheduled: 'Scheduled',
+  ongoing: 'Ongoing',
+  payment_pending: 'Payment pending',
   payment_received: 'Payment received',
-  // legacy values
-  pending: 'Tentative',
+  // legacy values mapped for old records until sync
+  tentative: 'Scheduled',
+  confirmed: 'Ongoing',
+  pending: 'Scheduled',
   done: 'Payment received',
 };
 
@@ -64,8 +67,8 @@ export function formatStatus(status) {
 }
 
 export const TOUR_STATUS_OPTIONS = [
-  { value: 'tentative', label: 'Tentative' },
-  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'scheduled', label: 'Scheduled' },
+  { value: 'ongoing', label: 'Ongoing' },
+  { value: 'payment_pending', label: 'Payment pending' },
   { value: 'payment_received', label: 'Payment received' },
 ];
-

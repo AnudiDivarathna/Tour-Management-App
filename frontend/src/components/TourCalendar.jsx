@@ -14,14 +14,7 @@ import {
   subMonths,
 } from 'date-fns';
 import { formatDateRange } from '../utils/format';
-
-function resolveStatusClass(tour) {
-  if (tour.paymentStatus === 'done') return 'payment_received';
-  if (tour.status === 'payment_received') return 'payment_received';
-  if (tour.status === 'confirmed') return 'confirmed';
-  if (tour.status === 'tentative' || tour.status === 'pending') return 'tentative';
-  return 'tentative';
-}
+import { resolveTourStatus } from '../utils/tourStatus';
 
 function toursOnDay(tours, day) {
   return tours.filter((tour) => {
@@ -65,8 +58,9 @@ export default function TourCalendar({ tours, onSelectTour }) {
       </div>
 
       <div className="calendar-legend">
-        <span><i className="legend-dot tentative" /> Tentative</span>
-        <span><i className="legend-dot confirmed" /> Confirmed</span>
+        <span><i className="legend-dot scheduled" /> Scheduled</span>
+        <span><i className="legend-dot ongoing" /> Ongoing</span>
+        <span><i className="legend-dot payment_pending" /> Payment pending</span>
         <span><i className="legend-dot payment_received" /> Payment received</span>
       </div>
 
@@ -93,7 +87,7 @@ export default function TourCalendar({ tours, onSelectTour }) {
                   <button
                     key={tour._id}
                     type="button"
-                    className={`tour-pill ${resolveStatusClass(tour)}`}
+                    className={`tour-pill ${resolveTourStatus(tour)}`}
                     title={`${tour.company || 'Tour'} · ${formatDateRange(tour.startDate, tour.endDate)}`}
                     onClick={() => onSelectTour(tour)}
                   >
@@ -117,7 +111,7 @@ export default function TourCalendar({ tours, onSelectTour }) {
               <button
                 key={tour._id}
                 type="button"
-                className={`month-tour-item ${resolveStatusClass(tour)}`}
+                className={`month-tour-item ${resolveTourStatus(tour)}`}
                 onClick={() => onSelectTour(tour)}
               >
                 <span className="month-tour-dates">

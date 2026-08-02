@@ -1393,12 +1393,16 @@ td .btn {
   display: inline-block;
 }
 
-.legend-dot.tentative {
-  background: #e6b800;
+.legend-dot.scheduled {
+  background: #8a94a6;
 }
 
-.legend-dot.confirmed {
+.legend-dot.ongoing {
   background: #1f6faf;
+}
+
+.legend-dot.payment_pending {
+  background: #e6b800;
 }
 
 .legend-dot.payment_received {
@@ -1426,15 +1430,19 @@ td .btn {
   transform: translateY(-1px);
 }
 
-.tour-pill.pending,
-.tour-pill.tentative {
-  background: #f5c518;
-  color: #3d2e00;
+.tour-pill.scheduled {
+  background: #c5ccd8;
+  color: #243041;
 }
 
-.tour-pill.confirmed {
+.tour-pill.ongoing {
   background: #1f6faf;
   color: #fff;
+}
+
+.tour-pill.payment_pending {
+  background: #f5c518;
+  color: #3d2e00;
 }
 
 .tour-pill.payment_received {
@@ -1452,20 +1460,42 @@ td .btn {
   white-space: nowrap;
 }
 
-.status-chip.tentative,
-.status-chip.pending {
-  background: #fff1d6;
-  color: #8a5810;
+.status-chip.scheduled {
+  background: #e8ebf0;
+  color: #3d4654;
 }
 
-.status-chip.confirmed {
+.status-chip.ongoing {
   background: #dceaf5;
   color: #1f5f86;
+}
+
+.status-chip.payment_pending {
+  background: #fff1d6;
+  color: #8a5810;
 }
 
 .status-chip.payment_received {
   background: #dff5ea;
   color: #0b5f42;
+}
+
+.status-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.status-help {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.status-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
 }
 
 .more-tours {
@@ -1512,16 +1542,22 @@ td .btn {
   box-shadow: 0 10px 20px rgba(20, 36, 29, 0.08);
 }
 
-.month-tour-item.tentative {
-  background: var(--tint-amber);
-  border-color: rgba(196, 132, 29, 0.22);
-  border-left-color: #e6b800;
+.month-tour-item.scheduled {
+  background: #f3f5f8;
+  border-color: rgba(90, 102, 120, 0.18);
+  border-left-color: #8a94a6;
 }
 
-.month-tour-item.confirmed {
+.month-tour-item.ongoing {
   background: var(--tint-blue);
   border-color: rgba(31, 95, 134, 0.22);
   border-left-color: #1f6faf;
+}
+
+.month-tour-item.payment_pending {
+  background: var(--tint-amber);
+  border-color: rgba(196, 132, 29, 0.22);
+  border-left-color: #e6b800;
 }
 
 .month-tour-item.payment_received {

@@ -4,9 +4,9 @@ import {
   formatMoney,
   formatStatus,
   CURRENCY,
-  TOUR_STATUS_OPTIONS,
 } from '../utils/format';
 import { calculateTourFinance } from '../utils/tourFinance';
+import { computeAutoStatus, resolveTourStatus } from '../utils/tourStatus';
 
 const emptyForm = {
   startDate: '',
@@ -14,7 +14,7 @@ const emptyForm = {
   company: '',
   tourNo: '',
   vehicle: '',
-  status: 'tentative',
+  status: 'scheduled',
   dieselCost: 0,
   driverHelperPayment: 0,
   highwayBill: 0,
@@ -65,20 +65,15 @@ export default function AdminTourForm({
       setForm(emptyForm);
       return;
     }
+    const startDate = toDateInputValue(initial.startDate);
+    const endDate = toDateInputValue(initial.endDate);
     setForm({
-      startDate: toDateInputValue(initial.startDate),
-      endDate: toDateInputValue(initial.endDate),
+      startDate,
+      endDate,
       company: initial.company || '',
       tourNo: initial.tourNo || '',
       vehicle: initial.vehicle?._id || initial.vehicle || '',
-      status:
-        initial.paymentStatus === 'done'
-          ? 'payment_received'
-          : ['tentative', 'confirmed', 'payment_received'].includes(initial.status)
-            ? initial.status
-            : initial.status === 'pending'
-              ? 'tentative'
-              : 'tentative',
+      status: resolveTourStatus({ ...initial, startDate, endDate }),
       dieselCost: initial.dieselCost ?? 0,
       driverHelperPayment: initial.driverHelperPayment ?? 0,
       highwayBill: initial.highwayBill ?? 0,
@@ -90,6 +85,24 @@ export default function AdminTourForm({
       commission: initial.commission ?? 0,
     });
   }, [initial]);
+
+  const autoStatus = useMemo(
+    () => computeAutoStatus(form.startDate, form.endDate),
+    [form.startDate, form.endDate]
+  );
+
+  const displayStatus =
+    form.status === 'payment_received' ? 'payment_received' : autoStatus;
+
+  useEffect(() => {
+    setForm((prev) => {
+      if (prev.status === 'payment_received') return prev;
+      if (!prev.startDate || !prev.endDate) return prev;
+      const next = computeAutoStatus(prev.startDate, prev.endDate);
+      if (prev.status === next) return prev;
+      return { ...prev, status: next };
+    });
+  }, [form.startDate, form.endDate]);
 
   const { totalCost, netProfit } = useMemo(
     () => calculateTourFinance(form),
@@ -120,8 +133,13 @@ export default function AdminTourForm({
     if (resetTimer.current) clearTimeout(resetTimer.current);
     setSaveState('saving');
     try {
+      const status =
+        form.status === 'payment_received'
+          ? 'payment_received'
+          : computeAutoStatus(form.startDate, form.endDate);
       const payload = {
         ...form,
+        status,
         vehicle: form.vehicle || null,
         dieselCost: Number(form.dieselCost) || 0,
         driverHelperPayment: Number(form.driverHelperPayment) || 0,
@@ -172,7 +190,9 @@ export default function AdminTourForm({
         <section className="form-section trip-section">
           <header className="form-section-head">
             <h3 className="form-section-title">Tour details</h3>
-            <span className={`status-chip ${form.status}`}>{formatStatus(form.status)}</span>
+            <span className={`status-chip ${displayStatus}`}>
+              {formatStatus(displayStatus)}
+            </span>
           </header>
 
           <div className="field-block">
@@ -232,16 +252,38 @@ export default function AdminTourForm({
                   ))}
                 </select>
               </label>
-              <label className="field span-2">
+              <div className="field span-2 status-actions">
                 <span className="field-name">Status</span>
-                <select value={form.status} onChange={(e) => update('status', e.target.value)}>
-                  {TOUR_STATUS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <p className="muted status-help">
+                  Set automatically from dates: Ongoing from the start date, Payment pending
+                  from the end date. Admin can mark Payment received.
+                </p>
+                <div className="status-action-row">
+                  <span className={`status-chip ${displayStatus}`}>
+                    {formatStatus(displayStatus)}
+                  </span>
+                  {displayStatus !== 'payment_received' && autoStatus === 'payment_pending' && (
+                    <button
+                      type="button"
+                      className="btn primary"
+                      onClick={() => update('status', 'payment_received')}
+                    >
+                      Mark payment received
+                    </button>
+                  )}
+                  {displayStatus === 'payment_received' && (
+                    <button
+                      type="button"
+                      className="btn ghost"
+                      onClick={() =>
+                        update('status', computeAutoStatus(form.startDate, form.endDate))
+                      }
+                    >
+                      Undo payment received
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </section>

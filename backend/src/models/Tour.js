@@ -13,8 +13,8 @@ const tourSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['tentative', 'confirmed', 'payment_received'],
-      default: 'tentative',
+      enum: ['scheduled', 'ongoing', 'payment_pending', 'payment_received'],
+      default: 'scheduled',
     },
     dieselCost: { type: Number, default: 0 },
     driverHelperPayment: { type: Number, default: 0 },
