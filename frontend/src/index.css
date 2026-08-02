@@ -336,8 +336,8 @@ select {
 }
 
 .brand-mark-sm .brand-mark-logo {
-  width: 2.6rem;
-  height: 2.6rem;
+  width: auto;
+  height: 2.85rem;
 }
 
 .brand-mark-sm .brand-mark-text strong {
@@ -346,8 +346,8 @@ select {
 }
 
 .brand-mark-md .brand-mark-logo {
-  width: 3.4rem;
-  height: 3.4rem;
+  width: auto;
+  height: 3.6rem;
 }
 
 .brand-mark-md .brand-mark-text strong {
@@ -361,7 +361,7 @@ select {
 }
 
 .brand-mark-lg .brand-mark-logo {
-  width: min(220px, 70vw);
+  width: min(240px, 72vw);
   height: auto;
 }
 
@@ -3645,12 +3645,12 @@ td .btn {
   }
 
   .brand-mark-sm .brand-mark-logo {
-    width: 2.2rem;
-    height: 2.2rem;
+    width: auto;
+    height: 2.45rem;
   }
 
   .brand-mark-lg .brand-mark-logo {
-    width: min(180px, 62vw);
+    width: min(200px, 68vw);
   }
 }
 
