@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import VehicleList from '../components/VehicleList';
 import { api } from '../api';
-import { VEHICLE_TYPE_OPTIONS, vehicleTypeLabel } from '../utils/format';
+import { VEHICLE_TYPE_OPTIONS } from '../utils/format';
+import { useConfirm } from '../hooks/useConfirm';
 
 export default function AdminVehicles() {
+  const { confirm } = useConfirm();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,7 +50,13 @@ export default function AdminVehicles() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Delete this vehicle? Assigned tours will become unassigned.')) return;
+    const vehicle = vehicles.find((v) => v._id === id);
+    const ok = await confirm({
+      title: vehicle ? `Delete ${vehicle.numberPlate}?` : 'Delete this vehicle?',
+      message: 'Assigned tours will become unassigned. This cannot be undone.',
+      confirmLabel: 'Delete vehicle',
+    });
+    if (!ok) return;
     try {
       await api.deleteVehicle(id);
       await load();
@@ -103,38 +110,8 @@ export default function AdminVehicles() {
         basePath="/admin/vehicles"
         loading={loading}
         error={error}
+        onDelete={handleDelete}
       />
-
-      {!loading && vehicles.length > 0 && (
-        <div className="table-wrap panel">
-          <table>
-            <thead>
-              <tr>
-                <th>Number</th>
-                <th>Type</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map((v) => (
-                <tr key={v._id}>
-                  <td>
-                    <Link to={`/admin/vehicles/${v._id}/calendar`}>{v.numberPlate}</Link>
-                  </td>
-                  <td>
-                    <span className={`type-chip ${v.type}`}>{vehicleTypeLabel(v.type)}</span>
-                  </td>
-                  <td className="right">
-                    <button type="button" className="btn danger ghost" onClick={() => handleDelete(v._id)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </Layout>
   );
 }

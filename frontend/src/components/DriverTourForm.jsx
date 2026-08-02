@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { formatDateRange, formatMoney, CURRENCY } from '../utils/format';
 import {
   EXPENSE_CATEGORIES,
@@ -18,10 +19,81 @@ const CATEGORY_ICONS = {
   food: FoodIcon,
 };
 
+function AddEntryDialog({ open, label, tone, onCancel, onAdd }) {
+  const [amount, setAmount] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    setAmount('');
+    const id = requestAnimationFrame(() => inputRef.current?.focus());
+    function onKey(e) {
+      if (e.key === 'Escape') onCancel?.();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => {
+      cancelAnimationFrame(id);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open, onCancel]);
+
+  if (!open) return null;
+
+  function submit(e) {
+    e.preventDefault();
+    const value = String(amount).trim();
+    if (!value || Number(value) === 0 || Number.isNaN(Number(value))) return;
+    onAdd(value);
+  }
+
+  return createPortal(
+    <div className="confirm-backdrop" role="presentation" onClick={onCancel}>
+      <form
+        className={`confirm-dialog expense-add-dialog ${tone || ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="expense-add-title"
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={submit}
+      >
+        <h3 id="expense-add-title">Add {label.toLowerCase()} entry</h3>
+        <p className="muted">Enter the amount for this entry.</p>
+        <label className="expense-add-field">
+          <span>Amount</span>
+          <span className="money-input">
+            <span className="currency">{CURRENCY}</span>
+            <input
+              ref={inputRef}
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              value={amount}
+              placeholder="0.00"
+              onChange={(e) => setAmount(e.target.value)}
+              required
+            />
+          </span>
+        </label>
+        <div className="confirm-actions">
+          <button type="button" className="btn ghost" onClick={onCancel}>
+            Cancel
+          </button>
+          <button type="submit" className="btn primary">
+            Add entry
+          </button>
+        </div>
+      </form>
+    </div>,
+    document.body
+  );
+}
+
 export default function DriverTourForm({ tour, onSubmit }) {
   const [rows, setRows] = useState([]);
   const [saveState, setSaveState] = useState('idle');
   const [error, setError] = useState('');
+  const [addingCategory, setAddingCategory] = useState(null);
   const resetTimer = useRef(null);
 
   useEffect(() => {
@@ -36,15 +108,17 @@ export default function DriverTourForm({ tour, onSubmit }) {
   }, [tour]);
 
   const grandTotal = useMemo(() => expensesGrandTotal(rows), [rows]);
+  const addingMeta = EXPENSE_CATEGORIES.find((c) => c.key === addingCategory);
 
   function touch() {
     if (resetTimer.current) clearTimeout(resetTimer.current);
     setSaveState('idle');
   }
 
-  function addRow(category) {
+  function addRowWithAmount(category, amount) {
     touch();
-    setRows((prev) => [...prev, newExpenseRow(category)]);
+    setRows((prev) => [...prev, { ...newExpenseRow(category), amount }]);
+    setAddingCategory(null);
   }
 
   function updateRow(rowId, field, value) {
@@ -140,7 +214,9 @@ export default function DriverTourForm({ tour, onSubmit }) {
                 </header>
 
                 {categoryRows.length > 0 && (
-                  <ul className="expense-rows">
+                  <ul
+                    className={`expense-rows${categoryRows.length > 2 ? ' is-scrollable' : ''}`}
+                  >
                     {categoryRows.map((row, index) => (
                       <li key={row.rowId} className="expense-row">
                         <span className="expense-row-no">{index + 1}</span>
@@ -172,7 +248,11 @@ export default function DriverTourForm({ tour, onSubmit }) {
                   </ul>
                 )}
 
-                <button type="button" className="expense-add" onClick={() => addRow(key)}>
+                <button
+                  type="button"
+                  className="expense-add"
+                  onClick={() => setAddingCategory(key)}
+                >
                   + Add {label.toLowerCase()} entry
                 </button>
               </section>
@@ -197,6 +277,14 @@ export default function DriverTourForm({ tour, onSubmit }) {
           </button>
         </div>
       </form>
+
+      <AddEntryDialog
+        open={Boolean(addingMeta)}
+        label={addingMeta?.label || 'expense'}
+        tone={addingMeta?.tone}
+        onCancel={() => setAddingCategory(null)}
+        onAdd={(amount) => addRowWithAmount(addingCategory, amount)}
+      />
     </div>
   );
 }

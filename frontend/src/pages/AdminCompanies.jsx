@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import { EditIcon, TrashIcon } from '../components/icons';
 import { api } from '../api';
+import { useConfirm } from '../hooks/useConfirm';
 
 export default function AdminCompanies() {
+  const { confirm } = useConfirm();
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,14 +65,31 @@ export default function AdminCompanies() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this company? Existing tours keep the company name.')) return;
+  async function handleDelete(company) {
+    const ok = await confirm({
+      title: `Delete ${company.name}?`,
+      message: 'Existing tours keep the company name. This cannot be undone.',
+      confirmLabel: 'Delete company',
+    });
+    if (!ok) return;
     try {
-      await api.deleteCompany(id);
+      await api.deleteCompany(company._id);
       await load();
     } catch (err) {
       alert(err.message);
     }
+  }
+
+  function startEdit(company) {
+    setEditingId(company._id);
+    setEditName(company.name);
+    setFormError('');
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditName('');
+    setFormError('');
   }
 
   return (
@@ -105,25 +125,28 @@ export default function AdminCompanies() {
       {loading && <p className="muted">Loading…</p>}
       {error && <p className="error">{error}</p>}
 
-      {!loading && !error && companies.length === 0 && (
-        <p className="muted panel">No companies yet. Add one to use it on tours.</p>
-      )}
-
-      {!loading && companies.length > 0 && (
-        <div className="table-wrap panel">
-          <table>
+      {!loading && !error && (
+        <div className="table-wrap panel companies-table-wrap">
+          <table className="companies-table">
             <thead>
               <tr>
-                <th>Company</th>
-                <th />
+                <th className="col-company">Company</th>
+                <th className="col-actions" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
+              {companies.length === 0 && (
+                <tr>
+                  <td colSpan={2} className="muted">
+                    No companies yet. Add one to use it on tours.
+                  </td>
+                </tr>
+              )}
               {companies.map((company) => (
                 <tr key={company._id}>
-                  <td>
+                  <td className="col-company">
                     {editingId === company._id ? (
-                      <form className="inline-form compact" onSubmit={handleUpdate}>
+                      <form className="inline-form compact company-edit-form" onSubmit={handleUpdate}>
                         {formError && editingId && <p className="error">{formError}</p>}
                         <input
                           value={editName}
@@ -134,44 +157,36 @@ export default function AdminCompanies() {
                         <button type="submit" className="btn primary" disabled={saving}>
                           Save
                         </button>
-                        <button
-                          type="button"
-                          className="btn ghost"
-                          onClick={() => {
-                            setEditingId(null);
-                            setEditName('');
-                            setFormError('');
-                          }}
-                        >
+                        <button type="button" className="btn ghost" onClick={cancelEdit}>
                           Cancel
                         </button>
                       </form>
                     ) : (
-                      company.name
+                      <span className="company-text">{company.name}</span>
                     )}
                   </td>
-                  <td className="right">
+                  <td className="col-actions">
                     {editingId !== company._id && (
-                      <>
+                      <div className="company-actions-inner">
                         <button
                           type="button"
-                          className="btn ghost"
-                          onClick={() => {
-                            setEditingId(company._id);
-                            setEditName(company.name);
-                            setFormError('');
-                          }}
+                          className="icon-btn"
+                          title="Edit company"
+                          aria-label={`Edit ${company.name}`}
+                          onClick={() => startEdit(company)}
                         >
-                          Edit
+                          <EditIcon />
                         </button>
                         <button
                           type="button"
-                          className="btn danger ghost"
-                          onClick={() => handleDelete(company._id)}
+                          className="icon-btn danger"
+                          title="Delete company"
+                          aria-label={`Delete ${company.name}`}
+                          onClick={() => handleDelete(company)}
                         >
-                          Delete
+                          <TrashIcon />
                         </button>
-                      </>
+                      </div>
                     )}
                   </td>
                 </tr>

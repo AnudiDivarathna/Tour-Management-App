@@ -34,9 +34,11 @@ export default function DriverTourDetail() {
   return (
     <Layout role="driver">
       <div className="page-header">
-        <Link to={backTo} className="back-link">
-          ← Back
-        </Link>
+        <div className="back-link-slot">
+          <Link to={backTo} className="back-link back-link-fixed">
+            ← Back
+          </Link>
+        </div>
         <h1>Tour details</h1>
         <p className="muted">
           Add each expense as you spend — the totals update as you type.

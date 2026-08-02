@@ -77,6 +77,25 @@ function UsersIcon() {
   );
 }
 
+function DashboardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+const ADMIN_LINKS = [
+  { to: '/admin', end: true, label: 'Dashboard', Icon: DashboardIcon, className: 'dashboard' },
+  { to: '/admin/vehicles', label: 'Vehicles', Icon: VehicleIcon, className: 'vehicles', hint: 'Add, edit, or remove vehicles' },
+  { to: '/admin/companies', label: 'Companies', Icon: CompanyIcon, className: 'companies', hint: 'Add company names for tours' },
+  { to: '/admin/tours', label: 'Tours', Icon: TourIcon, className: 'tours', hint: 'Create, edit, and assign trips' },
+  { to: '/admin/users', label: 'Users', Icon: UsersIcon, className: 'users', hint: 'Add admins and drivers' },
+];
+
 export default function Layout({ role, children }) {
   const isAdmin = role === 'admin';
   const navigate = useNavigate();
@@ -96,7 +115,7 @@ export default function Layout({ role, children }) {
           </Link>
           <nav className="nav">
             {isAdmin ? (
-              <NavLink to="/admin" end className="nav-tab dashboard">
+              <NavLink to="/admin" end className="nav-tab dashboard topbar-dashboard">
                 Dashboard
               </NavLink>
             ) : (
@@ -119,48 +138,36 @@ export default function Layout({ role, children }) {
             </button>
           </div>
         </div>
+
+        {isAdmin && (
+          <nav className="admin-menubar" aria-label="Admin menu">
+            {ADMIN_LINKS.map(({ to, end, label, Icon, className }) => (
+              <NavLink key={to} to={to} end={end} className={`menu-item ${className}`}>
+                <Icon />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+        )}
       </header>
 
       <div className="app-body">
         {isAdmin && (
           <aside className="side-pane">
             <p className="side-pane-label">Manage</p>
-            <NavLink to="/admin/vehicles" className="side-link vehicles">
-              <span className="side-link-icon">
-                <VehicleIcon />
-              </span>
-              <span className="side-link-text">
-                <strong>Vehicle management</strong>
-                <small>Add, edit, or remove vehicles</small>
-              </span>
-            </NavLink>
-            <NavLink to="/admin/companies" className="side-link companies">
-              <span className="side-link-icon">
-                <CompanyIcon />
-              </span>
-              <span className="side-link-text">
-                <strong>Company management</strong>
-                <small>Add company names for tours</small>
-              </span>
-            </NavLink>
-            <NavLink to="/admin/tours" className="side-link tours">
-              <span className="side-link-icon">
-                <TourIcon />
-              </span>
-              <span className="side-link-text">
-                <strong>Tour management</strong>
-                <small>Create, edit, and assign trips</small>
-              </span>
-            </NavLink>
-            <NavLink to="/admin/users" className="side-link users">
-              <span className="side-link-icon">
-                <UsersIcon />
-              </span>
-              <span className="side-link-text">
-                <strong>User management</strong>
-                <small>Add admins and drivers</small>
-              </span>
-            </NavLink>
+            {ADMIN_LINKS.filter((link) => link.to !== '/admin').map(
+              ({ to, label, Icon, className, hint }) => (
+                <NavLink key={to} to={to} className={`side-link ${className}`}>
+                  <span className="side-link-icon">
+                    <Icon />
+                  </span>
+                  <span className="side-link-text">
+                    <strong>{label}</strong>
+                    <small>{hint}</small>
+                  </span>
+                </NavLink>
+              )
+            )}
           </aside>
         )}
         <main className="page">{children}</main>

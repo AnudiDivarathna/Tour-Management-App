@@ -316,34 +316,36 @@ export default function AdminTourForm({
             <span className="section-hint">All amounts in LKR</span>
           </header>
 
-          <div className="field-block spend">
-            <div className="field-block-head">
-              <span>Spent</span>
-              <strong>{formatMoney(totalCost)}</strong>
+          <div className="finance-scroll">
+            <div className="field-block spend">
+              <div className="field-block-head">
+                <span>Spent</span>
+                <strong>{formatMoney(totalCost)}</strong>
+              </div>
+              <div className="field-grid three">{COST_FIELDS.map(moneyField)}</div>
             </div>
-            <div className="field-grid three">{COST_FIELDS.map(moneyField)}</div>
-          </div>
 
-          <div className="field-block earn">
-            <div className="field-block-head">
-              <span>Received</span>
-              <strong>{formatMoney(totalReceived)}</strong>
+            <div className="field-block earn">
+              <div className="field-block-head">
+                <span>Received</span>
+                <strong>{formatMoney(totalReceived)}</strong>
+              </div>
+              <div className="field-grid three">{INCOME_FIELDS.map(moneyField)}</div>
             </div>
-            <div className="field-grid three">{INCOME_FIELDS.map(moneyField)}</div>
-          </div>
 
-          <div className="finance-summary">
-            <div className="finance-stat cost">
-              <span>Total cost</span>
-              <strong>{formatMoney(totalCost)}</strong>
-            </div>
-            <div className="finance-stat received">
-              <span>Total received</span>
-              <strong>{formatMoney(totalReceived)}</strong>
-            </div>
-            <div className={`finance-stat ${netProfit < 0 ? 'negative' : 'positive'}`}>
-              <span>Net profit</span>
-              <strong>{formatMoney(netProfit)}</strong>
+            <div className="finance-summary">
+              <div className="finance-stat cost">
+                <span>Total cost</span>
+                <strong>{formatMoney(totalCost)}</strong>
+              </div>
+              <div className="finance-stat received">
+                <span>Total received</span>
+                <strong>{formatMoney(totalReceived)}</strong>
+              </div>
+              <div className={`finance-stat ${netProfit < 0 ? 'negative' : 'positive'}`}>
+                <span>Net profit</span>
+                <strong>{formatMoney(netProfit)}</strong>
+              </div>
             </div>
           </div>
         </section>

@@ -4,6 +4,7 @@ import Vehicle from './models/Vehicle.js';
 import Tour from './models/Tour.js';
 import Company from './models/Company.js';
 import { calculateTourFinance } from './utils/tourFinance.js';
+import { computeAutoStatus } from './utils/tourStatus.js';
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ function parseDate(ddmmyyyy) {
 function normalisePlate(plate) {
   return String(plate || '')
     .trim()
-    .replace(/[-_]/g, '')
+    .replace(/[-_\s]+/g, '')
     .toUpperCase();
 }
 
@@ -60,26 +61,77 @@ const vehiclePlates = [
   'NF 3035',
 ];
 
-// Payment Status is Pending for all rows → keep status as confirmed (not payment_received).
+// Columns: range, company, tourNo, vehicle, status, fuel, driver payment,
+// tour payment (balance), commission, net profit (derived), payment pending.
 const tourRows = [
+  {
+    range: '27.06.2026-02.07.2026',
+    company: 'Ceylon Canvas Holidays',
+    tourNo: 'CC-CL-270626-2',
+    vehicle: 'NG 1997',
+    dieselCost: '66,461.00',
+    driverPayment: '32,000.00',
+    balance: '189,910.00',
+    commission: '',
+  },
+  {
+    range: '11.07.2026-18.07.2026',
+    company: 'GCH',
+    tourNo: 'GCH26-1006',
+    vehicle: 'NH 1997',
+    dieselCost: '109,177.00',
+    driverPayment: '45,000.00',
+    balance: '279,640.00',
+    commission: '',
+  },
+  {
+    range: '19.07.2026-24.07.2026',
+    company: 'Ceylon Canvas Holidays',
+    tourNo: 'CC-ZB-190726-4',
+    vehicle: 'NH 1997',
+    dieselCost: '70,692.00',
+    driverPayment: '31,500.00',
+    balance: '210,770.00',
+    commission: '',
+  },
+  {
+    range: '20.07.2026-22.07.2026',
+    company: 'Classicdestinations',
+    tourNo: '25/563/1',
+    vehicle: 'NG 1997',
+    dieselCost: '37,858.00',
+    driverPayment: '13,500.00',
+    balance: '97,480.00',
+    commission: '',
+  },
+  {
+    range: '26.07.2026-28.07.2026',
+    company: 'GCH',
+    tourNo: 'GCH26-1189',
+    vehicle: 'NF 1997',
+    dieselCost: '25,580.00',
+    driverPayment: '6,000.00',
+    balance: '100,970.00',
+    commission: '7,500.00',
+  },
   {
     range: '29.07.2026-07.08.2026',
     company: 'Estiaco Holidays',
     tourNo: '',
     vehicle: 'NF 1997',
-    status: 'ongoing',
     dieselCost: '62,500.00',
-    driverPayment: '21,640.00',
+    driverPayment: '22,240.00',
+    balance: '',
     commission: '',
   },
   {
-    range: '29.07.2026-09.08.2026',
+    range: '29.07.2026-03.08.2026',
     company: 'Estiaco Holidays',
     tourNo: '',
     vehicle: 'NH 1997',
-    status: 'ongoing',
-    dieselCost: '38,577.00',
-    driverPayment: '',
+    dieselCost: '75,247.00',
+    driverPayment: '32,000.00',
+    balance: '',
     commission: '',
   },
   {
@@ -87,9 +139,19 @@ const tourRows = [
     company: 'GCH',
     tourNo: 'GCH26-1179',
     vehicle: 'NF 4507',
-    status: 'ongoing',
-    dieselCost: '42,793.00',
-    driverPayment: '25,000.00',
+    dieselCost: '57,438.00',
+    driverPayment: '23,000.00',
+    balance: '45,000.00',
+    commission: '',
+  },
+  {
+    range: '01.08.2026-06.08.2026',
+    company: 'Ceylon Canvas Holidays',
+    tourNo: '',
+    vehicle: 'NF 4507',
+    dieselCost: '24,110.00',
+    driverPayment: '',
+    balance: '70,000.00',
     commission: '',
   },
   {
@@ -97,9 +159,9 @@ const tourRows = [
     company: 'My Globe Travel',
     tourNo: 'MGT20260844',
     vehicle: 'NG 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '70,000.00',
     commission: '',
   },
   {
@@ -107,9 +169,9 @@ const tourRows = [
     company: 'Guide Pathirana',
     tourNo: '',
     vehicle: 'NH 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '',
     commission: '',
   },
   {
@@ -117,9 +179,9 @@ const tourRows = [
     company: 'Estiaco Holidays',
     tourNo: '',
     vehicle: 'NH 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '',
     commission: '',
   },
   {
@@ -127,9 +189,9 @@ const tourRows = [
     company: 'Estiaco Holidays',
     tourNo: '',
     vehicle: 'NH 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '',
     commission: '',
   },
   {
@@ -137,9 +199,9 @@ const tourRows = [
     company: 'Estiaco Holidays',
     tourNo: '',
     vehicle: 'NF 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '',
     commission: '',
   },
   {
@@ -147,9 +209,9 @@ const tourRows = [
     company: 'Guide Buddika',
     tourNo: '',
     vehicle: 'NG 1997',
-    status: 'ongoing',
     dieselCost: '',
     driverPayment: '',
+    balance: '',
     commission: '',
   },
 ];
@@ -163,36 +225,41 @@ async function seed() {
     console.log('Connected to MongoDB');
 
     await Tour.deleteMany({});
-    await Vehicle.deleteMany({});
-    await Company.deleteMany({});
-    console.log('Cleared previous tours, vehicles, and companies');
+    console.log('Cleared previous tours');
 
     const companyNames = [...new Set(tourRows.map((row) => row.company).filter(Boolean))];
+    await Company.deleteMany({});
     const insertedCompanies = await Company.insertMany(
       companyNames.map((name) => ({ name }))
     );
     console.log(`Seeded ${insertedCompanies.length} companies`);
 
-    const vehicles = vehiclePlates.map((numberPlate) => ({
-      numberPlate: formatPlate(numberPlate),
-      type: vehicleTypeFor(numberPlate),
-    }));
-    const insertedVehicles = await Vehicle.insertMany(vehicles);
-    console.log(`Seeded ${insertedVehicles.length} vehicles`);
+    for (const numberPlate of vehiclePlates) {
+      const plate = formatPlate(numberPlate);
+      await Vehicle.updateOne(
+        { numberPlate: plate },
+        { $setOnInsert: { numberPlate: plate, type: vehicleTypeFor(plate) } },
+        { upsert: true }
+      );
+    }
+    const vehicles = await Vehicle.find();
+    console.log(`Vehicles ready: ${vehicles.length}`);
 
     const vehicleByPlate = new Map(
-      insertedVehicles.map((v) => [normalisePlate(v.numberPlate), v._id])
+      vehicles.map((v) => [normalisePlate(v.numberPlate), v._id])
     );
 
     const tours = tourRows.map((row) => {
       const [startStr, endStr] = row.range.split('-');
+      const startDate = parseDate(startStr);
+      const endDate = parseDate(endStr);
       const finance = calculateTourFinance({
         dieselCost: parseAmount(row.dieselCost),
         driverPayment: parseAmount(row.driverPayment),
         helperPayment: 0,
         commission: parseAmount(row.commission),
         fuelAdvance: 0,
-        balance: 0,
+        balance: parseAmount(row.balance),
         highwayBill: 0,
         parkingBill: 0,
         accommodationCharges: 0,
@@ -208,18 +275,26 @@ async function seed() {
       }
 
       return {
-        startDate: parseDate(startStr),
-        endDate: parseDate(endStr),
+        startDate,
+        endDate,
         company: row.company,
         tourNo: row.tourNo || '',
         vehicle: vehicleId,
-        status: row.status,
+        status: computeAutoStatus(startDate, endDate),
+        expenses: [],
         ...finance,
       };
     });
 
     await Tour.insertMany(tours);
     console.log(`Seeded ${tours.length} tours`);
+
+    for (const tour of tours) {
+      console.log(
+        `${tour.tourNo || '(no tour no)'} | ${tour.company} | profit=${tour.netProfit}`
+      );
+    }
+
     console.log('Seed complete');
     await mongoose.disconnect();
     process.exit(0);

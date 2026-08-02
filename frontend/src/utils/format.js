@@ -18,6 +18,17 @@ export function formatDateRange(start, end) {
   return `${formatDate(start)} – ${formatDate(end)}`;
 }
 
+export function formatDateShort(value) {
+  if (!value) return '—';
+  const d = typeof value === 'string' ? parseISO(value) : new Date(value);
+  if (!isValid(d)) return '—';
+  return format(d, 'dd-MM');
+}
+
+export function formatDateRangeShort(start, end) {
+  return `${formatDateShort(start)}–${formatDateShort(end)}`;
+}
+
 export const CURRENCY = 'Rs';
 
 export function formatMoney(value) {

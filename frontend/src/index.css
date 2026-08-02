@@ -289,6 +289,10 @@ select {
   box-shadow: 0 10px 28px rgba(12, 28, 40, 0.12);
 }
 
+.admin-menubar {
+  display: none;
+}
+
 .topbar-inner {
   width: 100%;
   margin: 0;
@@ -627,6 +631,62 @@ a:focus-visible {
   color: var(--danger);
 }
 
+.btn.danger.confirm-delete {
+  background: linear-gradient(135deg, #d95548, var(--danger));
+  border-color: #a83226;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(192, 57, 43, 0.22);
+}
+
+.btn.danger.confirm-delete:hover {
+  background: linear-gradient(135deg, var(--danger), #a83226);
+  border-color: #8f2a20;
+  color: #fff;
+}
+
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(12, 28, 40, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-dialog {
+  width: min(22rem, 100%);
+  padding: 1.35rem 1.25rem 1.15rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: linear-gradient(180deg, #fffdf9, #fff4e8);
+  box-shadow: 0 24px 48px rgba(8, 24, 36, 0.28);
+}
+
+.confirm-dialog h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.confirm-dialog .muted {
+  margin: 0 0 1.15rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.confirm-actions .btn {
+  min-width: 5.5rem;
+}
+
 .btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -718,9 +778,7 @@ a:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
   min-height: 132px;
-  padding: 1rem 1.05rem 0.9rem;
   border-radius: 18px;
   border: 1px solid rgba(0, 113, 188, 0.2);
   background: linear-gradient(170deg, rgba(215, 239, 250, 0.95) 0%, rgba(255, 252, 247, 0.96) 85%);
@@ -732,6 +790,37 @@ a:focus-visible {
     transform 0.2s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease;
+}
+
+.vehicle-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+  min-height: 132px;
+  padding: 1rem 1.05rem 0.9rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.vehicle-card.has-actions .vehicle-card-link {
+  padding-right: 3.1rem;
+  padding-bottom: 0.85rem;
+}
+
+.vehicle-delete {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 10px;
+}
+
+.vehicle-delete svg {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 .vehicle-card::before {
@@ -1000,6 +1089,22 @@ a:focus-visible {
 
 .finance-section .form-section-title {
   color: var(--ink-blue);
+}
+
+.finance-scroll {
+  max-height: min(52vh, 28rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+  margin-right: -0.05rem;
+}
+
+@media (max-width: 720px) {
+  .finance-scroll {
+    max-height: min(48vh, 24rem);
+  }
 }
 
 .field-block {
@@ -1423,6 +1528,30 @@ td .btn {
   text-decoration: none;
 }
 
+.back-link-slot {
+  height: 2.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.back-link.back-link-fixed,
+.app-shell a.back-link.back-link-fixed,
+.driver-theme a.back-link.back-link-fixed {
+  position: fixed;
+  top: calc(4.35rem + env(safe-area-inset-top, 0px));
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  z-index: 40;
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .back-link.back-link-fixed,
+  .app-shell a.back-link.back-link-fixed,
+  .driver-theme a.back-link.back-link-fixed {
+    top: calc(4.1rem + env(safe-area-inset-top, 0px));
+    left: max(0.85rem, env(safe-area-inset-left, 0px));
+  }
+}
+
 .calendar-header {
   display: flex;
   align-items: center;
@@ -1624,6 +1753,14 @@ td .btn {
 .status-chip.payment_pending {
   background: #fff1d6;
   color: #8a5810;
+}
+
+.status-chip.stacked {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25em;
+  white-space: nowrap;
 }
 
 .status-chip.payment_received {
@@ -2137,11 +2274,14 @@ td .btn {
 }
 
 .driver-form {
+  display: flex;
+  flex-direction: column;
   margin-top: 0.6rem;
   padding: 0.85rem 0.95rem 1rem;
   border-radius: 16px;
   border: 1px solid rgba(196, 132, 29, 0.28);
   background: var(--tint-amber);
+  overflow: visible;
 }
 
 .driver-form .form-grid {
@@ -2180,9 +2320,6 @@ td .btn {
 }
 
 .expense-total-bar {
-  position: sticky;
-  top: 0.35rem;
-  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -2192,7 +2329,6 @@ td .btn {
   border-radius: 14px;
   border: 1px solid rgba(196, 132, 29, 0.3);
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(8px);
   box-shadow: 0 8px 20px rgba(20, 36, 29, 0.08);
 }
 
@@ -2266,16 +2402,36 @@ td .btn {
 }
 
 .expense-groups {
+  --expense-group-h: 9.25rem;
+  --expense-group-gap: 0.7rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: var(--expense-group-gap);
   margin-top: 0.75rem;
   align-items: start;
+  /* Show first row (3 category cards), then scroll */
+  max-height: calc(var(--expense-group-h) + 0.35rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-right: 0.1rem;
+  scrollbar-gutter: stable;
 }
 
 @media (max-width: 900px) {
   .expense-groups {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: calc((2 * var(--expense-group-h)) + var(--expense-group-gap));
+  }
+}
+
+@media (max-width: 640px) {
+  .expense-groups {
+    --expense-group-h: 9.5rem;
+    grid-template-columns: minmax(0, 1fr);
+    /* Show 3 category blocks, then scroll */
+    max-height: calc((3 * var(--expense-group-h)) + (2 * var(--expense-group-gap)));
   }
 }
 
@@ -2284,6 +2440,7 @@ td .btn {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.92);
   padding: 0.7rem 0.8rem 0.8rem;
+  min-height: var(--expense-group-h);
 }
 
 .expense-group.fuel {
@@ -2379,23 +2536,55 @@ td .btn {
 }
 
 .expense-rows {
+  --expense-row-h: 3.75rem;
+  --expense-row-gap: 0.55rem;
   list-style: none;
   margin: 0.65rem 0 0;
   padding: 0;
   display: grid;
-  gap: 0.5rem;
+  gap: var(--expense-row-gap);
+}
+
+.expense-rows.is-scrollable {
+  /* Keep exactly 2 full entries in view; scroll only for 3+ */
+  max-height: calc((2 * var(--expense-row-h)) + var(--expense-row-gap));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.15rem;
+  scrollbar-gutter: stable;
 }
 
 .expense-row {
   display: grid;
-  grid-template-columns: 1.35rem 8.5rem 1.6rem;
+  grid-template-columns: 1.35rem minmax(7.5rem, 8.5rem) 1.6rem;
   justify-content: start;
   gap: 0.45rem;
   align-items: center;
-  padding: 0.4rem 0.5rem;
+  box-sizing: border-box;
+  height: var(--expense-row-h);
+  padding: 0.35rem 0.5rem;
   border-radius: 11px;
   border: 1px solid var(--line);
   background: #fff;
+}
+
+.expense-rows .expense-cell input {
+  height: 2.4rem;
+  min-height: 2.4rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .expense-rows {
+    --expense-row-h: 4.85rem;
+  }
+
+  .expense-rows .expense-cell input {
+    height: 2.75rem;
+    min-height: 2.75rem;
+    font-size: 16px;
+  }
 }
 
 .expense-row-no {
@@ -2478,17 +2667,43 @@ td .btn {
   border-color: rgba(122, 74, 15, 0.65);
 }
 
+.expense-add-dialog .expense-add-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 1.15rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.expense-add-dialog .expense-add-field .money-input input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.7rem 0.55rem 2.2rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-add-dialog .expense-add-field .money-input input:focus {
+  outline: none;
+  border-color: #c4841d;
+  box-shadow: 0 0 0 3px rgba(196, 132, 29, 0.16);
+}
+
 @media (max-width: 640px) {
   .expense-total-bar {
-    gap: 0.5rem;
+    gap: 0.55rem;
   }
 
   .expense-total-main strong {
     font-size: 1.3rem;
-  }
-
-  .expense-groups {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .expense-remove {
@@ -2508,6 +2723,113 @@ td .btn {
   opacity: 0.7;
 }
 
+/* ---------- Tours table + icon actions ---------- */
+
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.icon-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-btn:hover {
+  border-color: rgba(0, 113, 188, 0.35);
+  background: var(--tint-blue-soft);
+  color: var(--ocean);
+}
+
+.icon-btn.danger {
+  color: var(--danger);
+}
+
+.icon-btn.danger:hover {
+  border-color: rgba(192, 57, 43, 0.35);
+  background: var(--tint-rose);
+  color: var(--danger);
+}
+
+.tours-table-wrap,
+.users-table-wrap,
+.companies-table-wrap {
+  max-height: min(70vh, 42rem);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.tours-table thead th,
+.users-table thead th,
+.companies-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 #b6cfe4;
+}
+
+.companies-table .col-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+.company-actions-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
+.users-table .col-actions {
+  text-align: right;
+}
+
+.user-actions-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
+.tours-table .date-short,
+.tours-table .vehicle-short,
+.tours-table .money-short {
+  display: none;
+}
+
+.tours-table .col-actions {
+  text-align: right;
+}
+
+.tour-actions-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
+.tours-table .col-actions .status-check {
+  margin-right: 0;
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1120px) {
@@ -2522,25 +2844,56 @@ td .btn {
   }
 
   .side-pane {
-    width: 100%;
-    min-height: 0;
-    border-right: none;
-    border-bottom: 1px solid rgba(212, 224, 217, 0.9);
-    padding: 0.9rem 1.1rem;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: stretch;
+    display: none;
   }
 
-  .side-pane-label {
-    width: 100%;
-    margin-bottom: 0;
+  .topbar-dashboard {
+    display: none;
   }
 
-  .side-link {
-    flex: 1;
-    min-width: 220px;
-    padding: 0.75rem;
+  .admin-menubar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0;
+    width: 100%;
+    border-top: 1px solid rgba(35, 31, 32, 0.08);
+    background: rgba(255, 252, 247, 0.96);
+  }
+
+  .admin-menubar .menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 3.35rem;
+    padding: 0.4rem 0.2rem 0.45rem;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition:
+      color 0.15s ease,
+      background 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .admin-menubar .menu-item svg {
+    width: 1.15rem;
+    height: 1.15rem;
+  }
+
+  .admin-menubar .menu-item:hover {
+    color: var(--ink);
+    background: rgba(245, 130, 32, 0.06);
+  }
+
+  .admin-menubar .menu-item.active {
+    color: var(--primary-deep);
+    background: rgba(245, 130, 32, 0.1);
+    border-bottom-color: var(--primary);
   }
 
   .page {
@@ -2557,6 +2910,13 @@ td .btn {
 
 /* Phones and small tablets: touch targets, no iOS zoom on focus */
 @media (max-width: 720px) {
+  :root,
+  .app-shell.admin-theme,
+  .app-shell.driver-theme,
+  .home-gate {
+    background-attachment: scroll;
+  }
+
   .field input,
   .field select,
   .form-grid input,
@@ -2602,6 +2962,7 @@ td .btn {
 
   .page-header.row {
     flex-direction: column;
+    align-items: stretch;
   }
 
   .page-header.row .btn,
@@ -2609,12 +2970,29 @@ td .btn {
     width: 100%;
   }
 
+  .page-header.row .header-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
   .page-header.row .header-actions .btn {
     flex: 1;
+    width: 100%;
   }
 
   .topbar-inner {
     flex-wrap: wrap;
+    row-gap: 0.55rem;
+  }
+
+  .topbar-user {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .signout-btn {
+    min-height: 40px;
+    padding: 0.4rem 0.7rem;
   }
 
   .trip-banner {
@@ -2626,9 +3004,301 @@ td .btn {
     min-height: 68px;
   }
 
-  /* Let wide tables scroll sideways instead of crushing the columns */
-  .table-wrap table {
+  /* Other wide tables can still scroll sideways */
+  .table-wrap:not(.tours-table-wrap):not(.users-table-wrap):not(.companies-table-wrap) table {
     min-width: 640px;
+  }
+
+  .tours-table-wrap,
+  .users-table-wrap,
+  .companies-table-wrap {
+    padding: 0.2rem;
+    max-height: min(62vh, 34rem);
+    overflow: auto;
+  }
+
+  .companies-table {
+    min-width: 0 !important;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.78rem;
+  }
+
+  .companies-table th,
+  .companies-table td {
+    padding: 0.45rem 0.35rem;
+    vertical-align: middle;
+  }
+
+  .companies-table thead th {
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    padding: 0.45rem 0.35rem;
+  }
+
+  .companies-table .col-company {
+    width: auto;
+    min-width: 0;
+  }
+
+  .companies-table .company-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .companies-table .company-edit-form {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .companies-table .col-actions {
+    width: 4rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+  }
+
+  .companies-table .company-actions-inner {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .companies-table .icon-btn {
+    width: 1.55rem;
+    height: 1.55rem;
+    min-height: 0;
+    border-radius: 7px;
+  }
+
+  .companies-table .icon-btn svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .users-table {
+    min-width: 0 !important;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.72rem;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 0.4rem 0.28rem;
+    vertical-align: middle;
+  }
+
+  .users-table thead th {
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    padding: 0.45rem 0.28rem;
+  }
+
+  .users-table .col-name {
+    width: 42%;
+    min-width: 0;
+  }
+
+  .users-table .name-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .users-table .you-tag {
+    display: inline-block;
+    margin-top: 0.15rem;
+  }
+
+  .users-table .col-username {
+    width: 30%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .users-table .col-type {
+    width: 18%;
+    text-align: center;
+  }
+
+  .users-table .col-type .role-badge {
+    font-size: 0.58rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .users-table .col-actions {
+    width: 4rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+  }
+
+  .users-table .user-actions-inner {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .users-table .icon-btn {
+    width: 1.55rem;
+    height: 1.55rem;
+    min-height: 0;
+    border-radius: 7px;
+  }
+
+  .users-table .icon-btn svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .tours-table {
+    min-width: 0 !important;
+    width: 100%;
+    table-layout: fixed;
+    font-size: 0.72rem;
+  }
+
+  .tours-table th,
+  .tours-table td {
+    padding: 0.4rem 0.22rem;
+    vertical-align: middle;
+  }
+
+  .tours-table thead th {
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    padding: 0.45rem 0.22rem;
+  }
+
+  .tours-table .col-optional {
+    display: none;
+  }
+
+  .tours-table .date-full,
+  .tours-table .vehicle-full,
+  .tours-table .money-full,
+  .tours-table .paid-label {
+    display: none;
+  }
+
+  .tours-table .date-short,
+  .tours-table .vehicle-short,
+  .tours-table .money-short {
+    display: inline;
+  }
+
+  .tours-table .col-dates {
+    width: 3.2rem;
+    font-weight: 700;
+    white-space: normal;
+  }
+
+  .tours-table .date-short {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+    gap: 0.08rem;
+  }
+
+  .tours-table .col-company {
+    width: 34%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .tours-table .company-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    line-height: 1.25;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .tours-table .col-vehicle {
+    width: 3.3rem;
+    white-space: nowrap;
+  }
+
+  .tours-table .col-status {
+    width: 3.4rem;
+    text-align: center;
+  }
+
+  .tours-table .col-status .status-chip {
+    font-size: 0.56rem;
+    padding: 0.12rem 0.28rem;
+    border-radius: 8px;
+    letter-spacing: 0.01em;
+    white-space: normal;
+    line-height: 1.15;
+    max-width: 100%;
+  }
+
+  .tours-table .col-status .status-chip.stacked {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.02rem;
+    border-radius: 8px;
+  }
+
+  .tours-table .money {
+    width: 3rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 0.1rem;
+  }
+
+  .tours-table .col-actions {
+    width: 4.2rem;
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    text-align: right;
+  }
+
+  .tours-table .tour-actions-inner {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .tours-table .icon-btn {
+    width: 1.55rem;
+    height: 1.55rem;
+    min-height: 0;
+    border-radius: 7px;
+  }
+
+  .tours-table .icon-btn svg {
+    width: 0.9rem;
+    height: 0.9rem;
+  }
+
+  .tours-table .status-check.compact {
+    margin-right: 0.1rem;
+  }
+
+  .tours-table .status-check.compact input {
+    width: 0.95rem;
+    height: 0.95rem;
   }
 
   th,
@@ -2664,6 +3334,19 @@ td .btn {
 
   .field-grid .span-2 {
     grid-column: auto;
+  }
+
+  .brand-mark-sm .brand-mark-text {
+    display: none;
+  }
+
+  .nav {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .topbar-user .role-badge {
+    display: none;
   }
 
   .bill-summary {

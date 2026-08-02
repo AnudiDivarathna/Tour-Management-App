@@ -1,12 +1,49 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { EditIcon, TrashIcon } from '../components/icons';
 import { api } from '../api';
-import { formatDateRange, formatMoney, formatStatus, vehicleLabel } from '../utils/format';
+import {
+  formatDateRange,
+  formatDateShort,
+  formatMoney,
+  formatStatus,
+  vehicleLabel,
+} from '../utils/format';
 import { downloadToursExcel } from '../utils/exportToursExcel';
 import { resolveTourStatus } from '../utils/tourStatus';
+import { useConfirm } from '../hooks/useConfirm';
+
+function shortPlate(vehicle) {
+  if (!vehicle) return '—';
+  return vehicle.numberPlate || vehicleLabel(vehicle);
+}
+
+function shortMoney(value) {
+  if (value === null || value === undefined || value === '') return '—';
+  const num = Number(value);
+  if (Number.isNaN(num)) return '—';
+  return Math.round(num).toLocaleString('en-LK');
+}
+
+function StatusChip({ status }) {
+  const stacked = status === 'payment_pending' || status === 'payment_received';
+  return (
+    <span className={`status-chip ${status}${stacked ? ' stacked' : ''}`}>
+      {stacked ? (
+        <>
+          <span>Payment</span>
+          <span>{status === 'payment_received' ? 'received' : 'pending'}</span>
+        </>
+      ) : (
+        formatStatus(status)
+      )}
+    </span>
+  );
+}
 
 export default function AdminTours() {
+  const { confirm } = useConfirm();
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -23,11 +60,16 @@ export default function AdminTours() {
     })();
   }, []);
 
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this tour?')) return;
+  async function handleDelete(tour) {
+    const ok = await confirm({
+      title: 'Delete this tour?',
+      message: `${tour.company || 'This tour'} will be permanently removed. This cannot be undone.`,
+      confirmLabel: 'Delete tour',
+    });
+    if (!ok) return;
     try {
-      await api.deleteTour(id);
-      setTours((prev) => prev.filter((t) => t._id !== id));
+      await api.deleteTour(tour._id);
+      setTours((prev) => prev.filter((t) => t._id !== tour._id));
     } catch (err) {
       alert(err.message);
     }
@@ -80,19 +122,18 @@ export default function AdminTours() {
       {error && <p className="error">{error}</p>}
 
       {!loading && !error && (
-        <div className="table-wrap panel">
-          <table>
+        <div className="table-wrap panel tours-table-wrap">
+          <table className="tours-table">
             <thead>
               <tr>
-                <th>Date range</th>
-                <th>Company</th>
-                <th>Tour No.</th>
-                <th>Vehicle</th>
-                <th>Status</th>
-                <th>Fuel</th>
-                <th>Total cost</th>
-                <th>Net profit</th>
-                <th />
+                <th className="col-dates">Dates</th>
+                <th className="col-company">Company</th>
+                <th className="col-optional">Tour No.</th>
+                <th className="col-vehicle">Vehicle</th>
+                <th className="col-status">Status</th>
+                <th className="col-optional">Cost</th>
+                <th className="money">Profit</th>
+                <th className="col-actions" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
@@ -101,65 +142,93 @@ export default function AdminTours() {
                 const statusValue = resolveTourStatus(tour);
                 return (
                   <tr key={tour._id}>
-                    <td>
+                    <td className="col-dates">
                       <Link to={`/admin/tours/${tour._id}`}>
-                        {formatDateRange(tour.startDate, tour.endDate)}
+                        <span className="date-full">
+                          {formatDateRange(tour.startDate, tour.endDate)}
+                        </span>
+                        <span className="date-short">
+                          <span>{formatDateShort(tour.startDate)}</span>
+                          <span>{formatDateShort(tour.endDate)}</span>
+                        </span>
                       </Link>
                     </td>
-                    <td>{tour.company || '—'}</td>
-                    <td>{tour.tourNo || '—'}</td>
-                    <td>
+                    <td className="col-company">
+                      <span className="company-text">{tour.company || '—'}</span>
+                    </td>
+                    <td className="col-optional">{tour.tourNo || '—'}</td>
+                    <td className="col-vehicle">
                       {vehicleId ? (
                         <Link to={`/admin/vehicles/${vehicleId}/calendar`}>
-                          {vehicleLabel(tour.vehicle)}
+                          <span className="vehicle-full">{vehicleLabel(tour.vehicle)}</span>
+                          <span className="vehicle-short">{shortPlate(tour.vehicle)}</span>
                         </Link>
                       ) : (
-                        vehicleLabel(tour.vehicle)
+                        <>
+                          <span className="vehicle-full">{vehicleLabel(tour.vehicle)}</span>
+                          <span className="vehicle-short">{shortPlate(tour.vehicle)}</span>
+                        </>
                       )}
                     </td>
-                    <td>
-                      <span className={`status-chip ${statusValue}`}>
-                        {formatStatus(statusValue)}
+                    <td className="col-status">
+                      <StatusChip status={statusValue} />
+                    </td>
+                    <td className="col-optional money">
+                      <span className="money-full">
+                        {formatMoney(tour.totalCost ?? tour.totalAmount)}
+                      </span>
+                      <span className="money-short">
+                        {shortMoney(tour.totalCost ?? tour.totalAmount)}
                       </span>
                     </td>
-                    <td>{formatMoney(tour.dieselCost)}</td>
-                    <td>{formatMoney(tour.totalCost ?? tour.totalAmount)}</td>
-                    <td>{formatMoney(tour.netProfit)}</td>
-                    <td className="right nowrap">
-                      {(statusValue === 'payment_pending' ||
-                        statusValue === 'payment_received') && (
-                        <label className="status-check compact">
-                          <input
-                            type="checkbox"
-                            checked={statusValue === 'payment_received'}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                handleMarkPaymentReceived(tour._id);
-                              }
-                            }}
-                          />
-                          <span>Paid</span>
-                        </label>
-                      )}
-                      <Link to={`/admin/tours/${tour._id}`} className="btn ghost">
-                        Details
-                      </Link>
-                      <button
-                        type="button"
-                        className="btn danger ghost"
-                        onClick={() => handleDelete(tour._id)}
-                      >
-                        Delete
-                      </button>
+                    <td className="money">
+                      <span className="money-full">{formatMoney(tour.netProfit)}</span>
+                      <span className="money-short">{shortMoney(tour.netProfit)}</span>
+                    </td>
+                    <td className="col-actions">
+                      <div className="tour-actions-inner">
+                        {(statusValue === 'payment_pending' ||
+                          statusValue === 'payment_received') && (
+                          <label className="status-check compact" title="Payment received">
+                            <input
+                              type="checkbox"
+                              checked={statusValue === 'payment_received'}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  handleMarkPaymentReceived(tour._id);
+                                }
+                              }}
+                            />
+                            <span className="paid-label">Paid</span>
+                          </label>
+                        )}
+                        <Link
+                          to={`/admin/tours/${tour._id}`}
+                          className="icon-btn"
+                          title="Edit tour"
+                          aria-label="Edit tour"
+                        >
+                          <EditIcon />
+                        </Link>
+                        <button
+                          type="button"
+                          className="icon-btn danger"
+                          title="Delete tour"
+                          aria-label="Delete tour"
+                          onClick={() => handleDelete(tour)}
+                        >
+                          <TrashIcon />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
               })}
               {!tours.length && (
                 <tr>
-                  <td colSpan={9} className="muted">
-                    No tours yet.
-                  </td>
+                    <td colSpan={8} className="muted">
+                      No tours yet.
+                    </td>
                 </tr>
               )}
             </tbody>

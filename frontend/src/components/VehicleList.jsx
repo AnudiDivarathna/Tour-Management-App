@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRightIcon, BusIcon, CoachIcon, VanIcon } from './icons';
+import { ArrowRightIcon, BusIcon, CoachIcon, TrashIcon, VanIcon } from './icons';
 import { vehicleTypeLabel } from '../utils/format';
 
 const TYPE_ICONS = {
@@ -8,7 +8,7 @@ const TYPE_ICONS = {
   bus: BusIcon,
 };
 
-export default function VehicleList({ vehicles, basePath, loading, error }) {
+export default function VehicleList({ vehicles, basePath, loading, error, onDelete }) {
   if (loading) {
     return (
       <div className="card-grid">
@@ -35,23 +35,36 @@ export default function VehicleList({ vehicles, basePath, loading, error }) {
       {vehicles.map((v) => {
         const Icon = TYPE_ICONS[v.type] || BusIcon;
         return (
-          <Link
-            key={v._id}
-            to={`${basePath}/${v._id}/calendar`}
-            className={`vehicle-card ${v.type}`}
-          >
-            <span className="vehicle-card-top">
-              <span className="vehicle-icon">
-                <Icon />
+          <div key={v._id} className={`vehicle-card ${v.type}${onDelete ? ' has-actions' : ''}`}>
+            {onDelete && (
+              <button
+                type="button"
+                className="icon-btn danger vehicle-delete"
+                title="Delete vehicle"
+                aria-label={`Delete ${v.numberPlate}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(v._id);
+                }}
+              >
+                <TrashIcon />
+              </button>
+            )}
+            <Link to={`${basePath}/${v._id}/calendar`} className="vehicle-card-link">
+              <span className="vehicle-card-top">
+                <span className="vehicle-icon">
+                  <Icon />
+                </span>
+                <span className={`type-chip ${v.type}`}>{vehicleTypeLabel(v.type)}</span>
               </span>
-              <span className={`type-chip ${v.type}`}>{vehicleTypeLabel(v.type)}</span>
-            </span>
-            <span className="plate">{v.numberPlate}</span>
-            <span className="vehicle-card-cta">
-              View calendar
-              <ArrowRightIcon className="cta-arrow" />
-            </span>
-          </Link>
+              <span className="plate">{v.numberPlate}</span>
+              <span className="vehicle-card-cta">
+                View calendar
+                <ArrowRightIcon className="cta-arrow" />
+              </span>
+            </Link>
+          </div>
         );
       })}
     </div>

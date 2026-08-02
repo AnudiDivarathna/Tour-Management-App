@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import { EditIcon, TrashIcon } from '../components/icons';
 import { api } from '../api';
 import { useAuth } from '../auth';
+import { useConfirm } from '../hooks/useConfirm';
 
 const emptyForm = {
   name: '',
@@ -13,6 +15,7 @@ const emptyForm = {
 
 export default function AdminUsers() {
   const { user: currentUser } = useAuth();
+  const { confirm } = useConfirm();
   const [users, setUsers] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +116,12 @@ export default function AdminUsers() {
   }
 
   async function handleDelete(user) {
-    if (!window.confirm(`Delete ${user.name}? They will lose access immediately.`)) return;
+    const ok = await confirm({
+      title: `Delete ${user.name}?`,
+      message: 'They will lose access immediately. This cannot be undone.',
+      confirmLabel: 'Delete user',
+    });
+    if (!ok) return;
     try {
       await api.deleteUser(user._id);
       await load();
@@ -221,57 +229,61 @@ export default function AdminUsers() {
       {error && <p className="error">{error}</p>}
 
       {!loading && !error && (
-        <div className="table-wrap panel">
-          <table>
+        <div className="table-wrap panel users-table-wrap">
+          <table className="users-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Type</th>
-                <th>Vehicles</th>
-                <th />
+                <th className="col-name">Name</th>
+                <th className="col-username">Username</th>
+                <th className="col-type">Type</th>
+                <th className="col-actions" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="muted">
+                  <td colSpan={4} className="muted">
                     No users yet.
                   </td>
                 </tr>
               )}
               {users.map((u) => (
-                <tr key={u._id}>
-                  <td>
-                    {u.name}
-                    {u._id === currentUser?._id && <span className="you-tag">you</span>}
-                  </td>
-                  <td>{u.username}</td>
-                  <td>
-                    <span className={`role-badge ${u.role}`}>
-                      {u.role === 'admin' ? 'Admin' : 'Driver'}
-                    </span>
-                  </td>
-                  <td>
-                    {u.role === 'admin'
-                      ? 'All vehicles'
-                      : (u.vehicles || []).map((v) => v.numberPlate).join(', ') || '—'}
-                  </td>
-                  <td className="right nowrap">
-                    <button type="button" className="btn ghost" onClick={() => startEdit(u)}>
-                      Edit
-                    </button>
-                    {u._id !== currentUser?._id && (
-                      <button
-                        type="button"
-                        className="btn danger ghost"
-                        onClick={() => handleDelete(u)}
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                  <tr key={u._id}>
+                    <td className="col-name">
+                      <span className="name-text">{u.name}</span>
+                      {u._id === currentUser?._id && <span className="you-tag">you</span>}
+                    </td>
+                    <td className="col-username">{u.username}</td>
+                    <td className="col-type">
+                      <span className={`role-badge ${u.role}`}>
+                        {u.role === 'admin' ? 'Admin' : 'Driver'}
+                      </span>
+                    </td>
+                    <td className="col-actions">
+                      <div className="user-actions-inner">
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          title="Edit user"
+                          aria-label={`Edit ${u.name}`}
+                          onClick={() => startEdit(u)}
+                        >
+                          <EditIcon />
+                        </button>
+                        {u._id !== currentUser?._id && (
+                          <button
+                            type="button"
+                            className="icon-btn danger"
+                            title="Delete user"
+                            aria-label={`Delete ${u.name}`}
+                            onClick={() => handleDelete(u)}
+                          >
+                            <TrashIcon />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
               ))}
             </tbody>
           </table>
