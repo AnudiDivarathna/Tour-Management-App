@@ -48,10 +48,21 @@ export const VEHICLE_TYPE_OPTIONS = [
   { value: 'long_coach', label: 'Long coach' },
 ];
 
+export const VEHICLE_CATEGORY_OPTIONS = [
+  { value: 'owned', label: 'Owned' },
+  { value: 'others', label: 'Others' },
+];
+
 export function vehicleTypeLabel(type) {
   if (!type) return '—';
   const match = VEHICLE_TYPE_OPTIONS.find((opt) => opt.value === type);
   return match ? match.label : type;
+}
+
+export function vehicleCategoryLabel(category) {
+  if (!category) return '—';
+  const match = VEHICLE_CATEGORY_OPTIONS.find((opt) => opt.value === category);
+  return match ? match.label : category;
 }
 
 export function vehicleLabel(vehicle) {

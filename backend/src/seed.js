@@ -41,12 +41,17 @@ function formatPlate(plate) {
 
 const VAN_PLATES = new Set(['NG 3909', 'PG 3909', 'NF 3035'].map(normalisePlate));
 const LONG_COACH_PLATES = new Set(['NH 1997'].map(normalisePlate));
+const OWNED_PLATES = new Set(['NF 4507', 'NF 1997', 'NG 1997', 'NH 1997'].map(normalisePlate));
 
 function vehicleTypeFor(numberPlate) {
   const key = normalisePlate(numberPlate);
   if (LONG_COACH_PLATES.has(key)) return 'long_coach';
   if (VAN_PLATES.has(key)) return 'van';
   return 'bus';
+}
+
+function vehicleCategoryFor(numberPlate) {
+  return OWNED_PLATES.has(normalisePlate(numberPlate)) ? 'owned' : 'others';
 }
 
 const vehiclePlates = [
@@ -238,7 +243,10 @@ async function seed() {
       const plate = formatPlate(numberPlate);
       await Vehicle.updateOne(
         { numberPlate: plate },
-        { $setOnInsert: { numberPlate: plate, type: vehicleTypeFor(plate) } },
+        {
+          $set: { category: vehicleCategoryFor(plate) },
+          $setOnInsert: { numberPlate: plate, type: vehicleTypeFor(plate) },
+        },
         { upsert: true }
       );
     }

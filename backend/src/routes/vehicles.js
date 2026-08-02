@@ -67,11 +67,11 @@ router.get('/:id/tours', guardVehicleAccess, async (req, res) => {
 
 router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { numberPlate, type } = req.body;
+    const { numberPlate, type, category = 'others' } = req.body;
     if (!numberPlate || !type) {
       return res.status(400).json({ message: 'numberPlate and type are required' });
     }
-    const vehicle = await Vehicle.create({ numberPlate, type });
+    const vehicle = await Vehicle.create({ numberPlate, type, category });
     res.status(201).json(vehicle);
   } catch (err) {
     if (err.code === 11000) {
@@ -83,10 +83,10 @@ router.post('/', requireAdmin, async (req, res) => {
 
 router.put('/:id', requireAdmin, async (req, res) => {
   try {
-    const { numberPlate, type } = req.body;
+    const { numberPlate, type, category } = req.body;
     const vehicle = await Vehicle.findByIdAndUpdate(
       req.params.id,
-      { numberPlate, type },
+      { numberPlate, type, ...(category ? { category } : {}) },
       { new: true, runValidators: true }
     );
     if (!vehicle) return res.status(404).json({ message: 'Vehicle not found' });

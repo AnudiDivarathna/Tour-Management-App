@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Layout from '../components/Layout';
 import VehicleList from '../components/VehicleList';
 import { api } from '../api';
-import { VEHICLE_TYPE_OPTIONS } from '../utils/format';
+import { VEHICLE_CATEGORY_OPTIONS, VEHICLE_TYPE_OPTIONS } from '../utils/format';
 import { useConfirm } from '../hooks/useConfirm';
 
 export default function AdminVehicles() {
@@ -10,9 +10,11 @@ export default function AdminVehicles() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [numberPlate, setNumberPlate] = useState('');
   const [type, setType] = useState('bus');
+  const [category, setCategory] = useState('others');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -32,14 +34,24 @@ export default function AdminVehicles() {
     load();
   }, []);
 
+  const filteredVehicles = useMemo(() => {
+    if (categoryFilter === 'all') return vehicles;
+    return vehicles.filter((v) => (v.category || 'others') === categoryFilter);
+  }, [vehicles, categoryFilter]);
+
   async function handleCreate(e) {
     e.preventDefault();
     setFormError('');
     setSaving(true);
     try {
-      await api.createVehicle({ numberPlate: numberPlate.trim(), type });
+      await api.createVehicle({
+        numberPlate: numberPlate.trim(),
+        type,
+        category,
+      });
       setNumberPlate('');
       setType('bus');
+      setCategory('others');
       setShowForm(false);
       await load();
     } catch (err) {
@@ -72,9 +84,25 @@ export default function AdminVehicles() {
           <h1>Vehicles</h1>
           <p className="muted">Click a vehicle number to open its schedule calendar.</p>
         </div>
-        <button type="button" className="btn primary" onClick={() => setShowForm((v) => !v)}>
-          {showForm ? 'Close' : 'Add vehicle'}
-        </button>
+        <div className="header-actions">
+          <label className="filter-control">
+            <span>Category</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              {VEHICLE_CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" className="btn primary" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? 'Close' : 'Add vehicle'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
@@ -99,6 +127,16 @@ export default function AdminVehicles() {
               ))}
             </select>
           </label>
+          <label>
+            Category
+            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+              {VEHICLE_CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <button type="submit" className="btn primary" disabled={saving}>
             {saving ? 'Saving…' : 'Create'}
           </button>
@@ -106,11 +144,16 @@ export default function AdminVehicles() {
       )}
 
       <VehicleList
-        vehicles={vehicles}
+        vehicles={filteredVehicles}
         basePath="/admin/vehicles"
         loading={loading}
         error={error}
         onDelete={handleDelete}
+        emptyMessage={
+          vehicles.length
+            ? 'No vehicles match this category.'
+            : 'No vehicles yet.'
+        }
       />
     </Layout>
   );

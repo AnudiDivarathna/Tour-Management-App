@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { EditIcon, TrashIcon } from '../components/icons';
@@ -8,9 +8,9 @@ import {
   formatDateShort,
   formatMoney,
   formatStatus,
+  VEHICLE_CATEGORY_OPTIONS,
   vehicleLabel,
 } from '../utils/format';
-import { downloadToursExcel } from '../utils/exportToursExcel';
 import { resolveTourStatus } from '../utils/tourStatus';
 import { useConfirm } from '../hooks/useConfirm';
 
@@ -47,6 +47,7 @@ export default function AdminTours() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   useEffect(() => {
     (async () => {
@@ -59,6 +60,14 @@ export default function AdminTours() {
       }
     })();
   }, []);
+
+  const filteredTours = useMemo(() => {
+    if (categoryFilter === 'all') return tours;
+    return tours.filter((tour) => {
+      if (!tour.vehicle) return false;
+      return (tour.vehicle.category || 'others') === categoryFilter;
+    });
+  }, [tours, categoryFilter]);
 
   async function handleDelete(tour) {
     const ok = await confirm({
@@ -84,18 +93,6 @@ export default function AdminTours() {
     }
   }
 
-  async function handleExportExcel() {
-    if (!tours.length) {
-      alert('No tours to export.');
-      return;
-    }
-    try {
-      await downloadToursExcel(tours);
-    } catch (err) {
-      alert(err.message || 'Failed to export Excel file.');
-    }
-  }
-
   return (
     <Layout role="admin">
       <div className="page-header row">
@@ -104,14 +101,20 @@ export default function AdminTours() {
           <p className="muted">All tour records. Unassigned tours have no vehicle yet.</p>
         </div>
         <div className="header-actions">
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={handleExportExcel}
-            disabled={loading || !tours.length}
-          >
-            Export Excel
-          </button>
+          <label className="filter-control">
+            <span>Vehicle category</span>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="all">All</option>
+              {VEHICLE_CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <Link to="/admin/tours/new" className="btn primary">
             Add tour
           </Link>
@@ -137,7 +140,7 @@ export default function AdminTours() {
               </tr>
             </thead>
             <tbody>
-              {tours.map((tour) => {
+              {filteredTours.map((tour) => {
                 const vehicleId = tour.vehicle?._id || tour.vehicle;
                 const statusValue = resolveTourStatus(tour);
                 return (
@@ -224,10 +227,10 @@ export default function AdminTours() {
                   </tr>
                 );
               })}
-              {!tours.length && (
+              {!filteredTours.length && (
                 <tr>
                     <td colSpan={8} className="muted">
-                      No tours yet.
+                      {tours.length ? 'No tours match this vehicle category.' : 'No tours yet.'}
                     </td>
                 </tr>
               )}

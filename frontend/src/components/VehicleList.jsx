@@ -8,7 +8,14 @@ const TYPE_ICONS = {
   bus: BusIcon,
 };
 
-export default function VehicleList({ vehicles, basePath, loading, error, onDelete }) {
+export default function VehicleList({
+  vehicles,
+  basePath,
+  loading,
+  error,
+  onDelete,
+  emptyMessage = 'No vehicles yet.',
+}) {
   if (loading) {
     return (
       <div className="card-grid">
@@ -25,7 +32,7 @@ export default function VehicleList({ vehicles, basePath, loading, error, onDele
     return (
       <div className="empty-state">
         <BusIcon className="empty-icon" />
-        <p>No vehicles yet.</p>
+        <p>{emptyMessage}</p>
       </div>
     );
   }
